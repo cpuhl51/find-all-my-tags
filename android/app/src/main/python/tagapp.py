@@ -443,7 +443,7 @@ def ble_ingest(frames_json: str) -> str:
     for a in alerts:
         a["name"] = names.get(a["id"], "Tag")
     _save_status(ble_last_scan=int(time.time()))
-    return json.dumps({"alerts": alerts, "matched": battery.last_matched, "frames": len(frames)})
+    return json.dumps({"alerts": alerts, "matched": battery.last_matched, "frames": len(frames)} | battery.summary())
 
 
 def ble_known() -> int:

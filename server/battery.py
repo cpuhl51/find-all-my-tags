@@ -26,6 +26,7 @@ from .config import DATA_DIR
 
 ROTATION = 1024          # EID-Wechsel alle 2^10 Sekunden
 WINDOWS = 3              # so viele Fenster vor/nach der Schätzung prüfen (Uhr-Abweichung)
+WIDE_WINDOWS = 48        # Suche um "jetzt minus Kopplungsdatum", wenn kein Uhrstand bekannt ist (±13,6 h)
 LEVELS = {0: "unknown", 1: "normal", 2: "low", 3: "critical"}
 
 _BEACONS = DATA_DIR / "beacons.json"
@@ -50,16 +51,24 @@ def _save(path, data: dict) -> None:
 
 # ---------- beim Standortabruf: Schlüssel und Uhrstand merken ----------
 
-def remember(device_id: str, identity_key: bytes, anchor_ts: int, beacon_counter: int) -> None:
-    """anchor_ts = Unix-Zeit des Berichts, beacon_counter = Uhrstand des Tags zu dieser Zeit."""
-    if not identity_key or beacon_counter <= 0:
+def remember(device_id: str, identity_key: bytes, anchor_ts: int, beacon_counter: int, pair_date: int = 0) -> None:
+    """anchor_ts = Unix-Zeit des Berichts, beacon_counter = Uhrstand des Tags zu dieser Zeit.
+    pair_date = Kopplungsdatum (Ersatz, wenn Google keinen Uhrstand mitliefert, z. B. bei eigenen Berichten)."""
+    if not identity_key:
         return
     with _lock:
         data = _load(_BEACONS)
         old = data.get(device_id, {})
-        if old.get("ts", 0) > anchor_ts and old.get("ik") == identity_key.hex():
-            return  # wir haben schon einen neueren Anker
-        data[device_id] = {"ik": identity_key.hex(), "ts": int(anchor_ts), "counter": int(beacon_counter)}
+        same_key = old.get("ik") == identity_key.hex()
+        entry = dict(old) if same_key else {}
+        entry["ik"] = identity_key.hex()
+        if 1_400_000_000 < int(pair_date or 0) < time.time() + 86400:
+            entry["pair"] = int(pair_date)
+        if beacon_counter > 0 and not entry.get("exact") and anchor_ts >= entry.get("ts", 0):
+            entry["ts"], entry["counter"] = int(anchor_ts), int(beacon_counter)
+        if "counter" not in entry and "pair" not in entry:
+            return
+        data[device_id] = entry
         _save(_BEACONS, data)
 
 
@@ -74,25 +83,38 @@ def _eid_and_r(ik_hex: str, window_start: int) -> tuple[bytes, int]:
     from ecdsa import SECP160r1
     r = calculate_r(bytes.fromhex(ik_hex), window_start)
     eid = (r * SECP160r1.generator).x().to_bytes(20, "big")
-    if len(_eid_cache) > 2000:
+    if len(_eid_cache) > 8000:
         _eid_cache.clear()
     _eid_cache[key] = (eid, r)
     return eid, r
 
 
-def _candidates(now: int) -> dict[bytes, tuple[str, int]]:
-    """EID -> (device_id, r) für alle bekannten Tags rund um die geschätzte Tag-Uhr."""
+def _candidates(now: int) -> dict[bytes, tuple[str, int, int]]:
+    """EID -> (device_id, r, Fensterbeginn) für alle bekannten Tags rund um die geschätzte Tag-Uhr."""
     out = {}
     for device_id, b in _load(_BEACONS).items():
-        est = b["counter"] + (now - b["ts"])
-        base = est - est % ROTATION
-        for k in range(-WINDOWS, WINDOWS + 1):
-            w = base + k * ROTATION
-            if w < 0:
-                continue
-            eid, r = _eid_and_r(b["ik"], w)
-            out[eid] = (device_id, r)
+        guesses = []
+        if b.get("counter"):
+            guesses.append((b["counter"] + (now - b["ts"]), WINDOWS))
+        if b.get("pair") and not b.get("exact"):
+            guesses.append((now - b["pair"], WIDE_WINDOWS))
+        for est, span in guesses:
+            base = est - est % ROTATION
+            for k in range(-span, span + 1):
+                w = base + k * ROTATION
+                if w < 0:
+                    continue
+                eid, r = _eid_and_r(b["ik"], w)
+                out[eid] = (device_id, r, w)
     return out
+
+
+def _calibrate(device_id: str, window: int, now: int) -> None:
+    """Passendes Signal gefunden: genauen Uhrstand merken, künftig nur noch eng suchen."""
+    data = _load(_BEACONS)
+    if device_id in data:
+        data[device_id].update(ts=now, counter=window + ROTATION // 2, exact=True)
+        _save(_BEACONS, data)
 
 
 def decode_level(hashed_flags: int, r: int) -> int:
@@ -128,7 +150,9 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
             hit = cands.get(b[1:21])
             if not hit:
                 continue
-            device_id, r = hit
+            device_id, r, window = hit
+            if device_id not in matched:
+                _calibrate(device_id, window, now)
             matched.add(device_id)
             level = decode_level(b[21], r) if len(b) >= 22 else 0
             prev = state.get(device_id, {})
@@ -150,3 +174,10 @@ def state() -> dict:
 
 def known_count() -> int:
     return len(_load(_BEACONS))
+
+
+def summary() -> dict:
+    """Für die Meldung nach dem Scan: wie viele Tags vorbereitet / schon genau bekannt sind."""
+    data = _load(_BEACONS)
+    return {"known": len(data), "exact": sum(1 for b in data.values() if b.get("exact")),
+            "pair_only": sum(1 for b in data.values() if not b.get("counter"))}

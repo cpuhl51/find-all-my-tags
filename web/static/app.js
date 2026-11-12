@@ -119,7 +119,7 @@
 
   // ---------- Akkustand (von der App per Bluetooth gelesen: 1 normal, 2 schwach, 3 kritisch) ----------
   const BATT = { 1: ['🟢', 'normal'], 2: ['🟡', 'low'], 3: ['🔴', 'critical – replace soon'] };
-  const battDot = (d) => (d.battery && BATT[d.battery.level] ? BATT[d.battery.level][0] : '');
+  const battDot = (d) => (d.battery && BATT[d.battery.level] ? BATT[d.battery.level][0] : (d.battery && d.battery.seen_ts ? '🔋' : ''));
   function battLine(d) {
     const b = d.battery;
     const btn = NATIVE && NATIVE.checkBatteries ? ` <button type="button" class="batt-check">${esc(t('Check battery'))}</button>` : '';
@@ -213,9 +213,23 @@
     const items = devices.filter((d) => d.last_lat != null)
       .map((d) => ({ d, p: map.latLngToContainerPoint([d.last_lat, d.last_lon]) }));
     const groups = [];
+    // Beschriftung steht rechts vom Symbol: Überlappung, wenn senkrecht < 30 px und waagrecht < Beschriftungsbreite
+    const labelW = (d) => 34 + 7.2 * String(d.name).length;
+    const clash = (a, b) => a.p.distanceTo(b.p) < STACK_R
+      || (Math.abs(a.p.y - b.p.y) < 30 && Math.abs(a.p.x - b.p.x) < Math.max(labelW(a.d), labelW(b.d)));
     items.forEach((o) => {
-      const g = groups.find((g) => g.c.distanceTo(o.p) < STACK_R);
-      if (g) g.items.push(o); else groups.push({ c: o.p, real: [o.d.last_lat, o.d.last_lon], items: [o] });
+      const hit = groups.filter((g) => g.items.some((x) => clash(x, o)));
+      if (!hit.length) { groups.push({ c: o.p, real: [o.d.last_lat, o.d.last_lon], items: [o] }); return; }
+      const g = hit[0];
+      hit.slice(1).forEach((h) => { g.items.push(...h.items); groups.splice(groups.indexOf(h), 1); });
+      g.items.push(o);
+    });
+    // Gruppenmitte = Mittelpunkt der echten Orte
+    groups.forEach((g) => {
+      if (g.items.length < 2) return;
+      const n = g.items.length;
+      g.c = L.point(g.items.reduce((s, o) => s + o.p.x, 0) / n, g.items.reduce((s, o) => s + o.p.y, 0) / n);
+      g.real = map.containerPointToLatLng(g.c);
     });
     groups.forEach((g) => {
       if (g.items.length < 2) { g.items[0].pos = [g.items[0].d.last_lat, g.items[0].d.last_lon]; return; }
@@ -230,19 +244,40 @@
     layout().forEach((g) => {
       const stacked = g.items.length > 1;
       if (stacked) {
-        g.items.forEach((o) => L.polyline([g.real, o.pos], { color: '#94a3b8', weight: 1, opacity: 0.9, interactive: false }).addTo(layers.all));
-        L.circleMarker(g.real, { radius: 4, color: '#fff', weight: 2, fillColor: '#475569', fillOpacity: 1, interactive: false }).addTo(layers.all);
+        g.items.forEach((o) => {
+          const real = [o.d.last_lat, o.d.last_lon];
+          L.polyline([real, o.pos], { color: '#94a3b8', weight: 1, opacity: 0.9, interactive: false }).addTo(layers.all);
+          L.circleMarker(real, { radius: 3, color: '#fff', weight: 1.5, fillColor: '#475569', fillOpacity: 1, interactive: false }).addTo(layers.all);
+        });
       }
       g.items.forEach(({ d, pos }) => {
         const on = d.id === focusId, size = on ? 28 : 22;
         const icon = L.divIcon({ className: 'tag-icon', html: iconSvg(d, size, on), iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
         L.marker(pos, { icon, zIndexOffset: on ? 1000 : 0, keyboard: false })
-          .bindTooltip(`${battDot(d)} ${esc(d.name)}`.trim(), { permanent: true, direction: 'right', offset: [size / 2, 0], className: 'tag-label' })
+          .bindTooltip(labelHtml(d), { permanent: true, direction: 'right', offset: [size / 2, 0], className: 'tag-label s-' + statusOf(d).key })
           .on('click', () => select(d.id, true))
           .addTo(layers.all);
         if (d.last_accuracy && on) L.circle([d.last_lat, d.last_lon], { radius: d.last_accuracy, color: styleOf(d).color, weight: 1, fillOpacity: 0.08, interactive: false }).addTo(layers.all);
       });
     });
+  }
+  // Status auf einen Blick: ok, Akku niedrig, Akku sehr niedrig, seit x nicht gesehen
+  function statusOf(d) {
+    const lvl = d.battery && d.battery.level;
+    if (lvl === 3) return { key: 'crit', text: t('Battery very low') };
+    if (lvl === 2) return { key: 'low', text: t('Battery low') };
+    if (seenTs(d) == null) return { key: 'stale', text: t('never seen') };
+    if (isStale(d)) return { key: 'stale', text: t('not seen for {n}', { n: sinceText(seenTs(d)) }) };
+    return { key: isNear(d) ? 'near' : 'ok', text: '' };
+  }
+  function sinceText(ts) {
+    const h = (Date.now() / 1000 - ts) / 3600;
+    return h >= 48 ? t('{n} days', { n: Math.round(h / 24) }) : t('{n} hours', { n: Math.round(h) });
+  }
+  function labelHtml(d) {
+    const st = statusOf(d);
+    const icon = st.key === 'crit' ? '🔴 ' : st.key === 'low' ? '🟡 ' : st.key === 'stale' ? '⚠ ' : st.key === 'near' ? '📶 ' : '✓ ';
+    return `${icon}${esc(d.name)}` + (st.text ? `<span class="st">${esc(st.text)}</span>` : '');
   }
   map.on('zoomend', () => renderMarkers());
   map.on('resize', () => renderMarkers());
@@ -273,10 +308,13 @@
   function select(id, fromMap) {
     const panel = $('panel');
     if (fromMap) {
-      if (panel.classList.contains('collapsed')) panel.classList.remove('collapsed');
+      if (panel.classList.contains('collapsed')) { panel.classList.remove('collapsed'); panel.classList.add('peek'); }
       if (focusId === id) { const d0 = focused(); if (d0) setTimeout(() => focusOn(d0, false), 60); return; }
     }
-    if (focusId === id) { focusId = null; historyOn = false; clearHistory(); }
+    if (focusId === id) {
+      focusId = null; historyOn = false; clearHistory();
+      if (panel.classList.contains('peek')) { panel.classList.remove('peek'); panel.classList.add('collapsed'); }
+    }
     else { focusId = id; if (historyOn) loadHistory().catch(console.error); }
     store.set('focus', focusId || '');
     renderMarkers(); renderOverview(); renderDetail();
@@ -445,7 +483,13 @@
   $('showPoints').addEventListener('change', () => loadHistory().catch(alert));
   $('onlineAddress').checked = store.get('allowAddressLookup') === '1';
   $('onlineAddress').addEventListener('change', (e) => { store.set('allowAddressLookup', e.target.checked ? '1' : '0'); renderDetail(); });
-  $('toggle').addEventListener('click', () => $('panel').classList.toggle('collapsed'));
+  $('toggle').addEventListener('click', () => {
+    const pn = $('panel');
+    if (pn.classList.contains('peek')) { pn.classList.remove('peek'); return; }   // halb → ganz ausfahren
+    pn.classList.toggle('collapsed');
+  });
+  // Verlauf braucht das ganze Panel
+  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('#aHist')) $('panel').classList.remove('peek'); });
   $('pollNow').addEventListener('click', async () => {
     try { await data.pollNow(); $('pollStatus').textContent = t('Checking Google for new locations…'); setTimeout(refresh, 15000); }
     catch (e) { alert(e.message); }

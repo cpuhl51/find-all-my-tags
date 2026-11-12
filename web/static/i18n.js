@@ -163,6 +163,11 @@
     'Google Drive backup: pending, will retry (locations are safe on the phone)': 'Google-Drive-Sicherung: ausstehend, wird wiederholt (Standorte sind am Handy sicher)',
     'Google Drive backup: saved {ago}': 'Google-Drive-Sicherung: gesichert {ago}',
     'Google Drive backup: first sync running…': 'Google-Drive-Sicherung: erste Sicherung läuft …',
+    'Update all now': 'Jetzt alle aktualisieren',
+    'Battery very low': 'Akku sehr niedrig',
+    'Battery low': 'Akku niedrig',
+    'never seen': 'noch nie gesehen',
+    'not seen for {n}': 'seit {n} nicht gesehen',
     // Sprache
     'Language': 'Sprache',
   };

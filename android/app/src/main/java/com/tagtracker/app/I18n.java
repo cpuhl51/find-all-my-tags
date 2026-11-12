@@ -487,6 +487,10 @@ final class I18n {
               "Bluetooth-Signale gefunden, aber noch keinem deiner Tags zugeordnet.");
         m.put(" tag(s) nearby recognised – battery updated.",
               " Tag(s) in der Nähe erkannt – Akkustand aktualisiert.");
+        m.put(" Find Hub signal(s) received, but none matched one of your ",
+              " Find-Hub-Signal(e) empfangen, aber noch keines passt zu einem deiner ");
+        m.put(" prepared tags yet. Bring a tag right next to the phone and try again.",
+              " vorbereiteten Tags. Leg einen Tag direkt neben das Handy und versuch es noch einmal.");
         return m;
     }
 }

@@ -1,6 +1,26 @@
 {
-  "version": "1.4.1",
+  "version": "1.5.0",
   "verlauf": [
+    {
+      "version": "1.5.0",
+      "datum": "2026-11-13",
+      "aenderungen": [
+        "Beschriftungen auf der Karte zeigen den Status: ok, Akku niedrig, Akku sehr niedrig, seit x nicht gesehen",
+        "Überlappende Beschriftungen werden geordnet untereinander gestellt",
+        "Tipp auf einen Tag bei eingeklappter Liste fährt nur die Details aus",
+        "Akku-Erkennung auch ohne Uhrstand von Google (über das Kopplungsdatum), mit genauer Meldung nach dem Scan",
+        "🔋 in der Liste bei Tags, die per Bluetooth gefunden wurden",
+        "Kartenauswahl richtig dargestellt, Knopf „Jetzt alle aktualisieren“, Zönose-Knöpfe im Grau der Oberfläche"
+      ],
+      "aenderungen_en": [
+        "Map labels show the status: ok, battery low, battery very low, not seen for x",
+        "Overlapping labels are neatly stacked",
+        "Tapping a tag with the list collapsed only slides up its details",
+        "Battery detection also without Google's beacon clock (via pairing date), with a detailed message after the scan",
+        "🔋 in the list for tags found via Bluetooth",
+        "Map chooser drawn correctly, “Update all now” button, Zönose buttons in the panel grey"
+      ]
+    },
     {
       "version": "1.4.1",
       "datum": "2026-11-13",

@@ -35,6 +35,8 @@ final class BleBattery {
     private static volatile long lastScan = 0;
     /** Wie viele eigene Tags beim letzten Scan erkannt wurden. */
     static volatile int lastMatched = 0;
+    /** Wie viele eigene Tags die App per Bluetooth erkennen kann (Schlüssel bekannt). */
+    static volatile int lastKnown = 0;
 
     private BleBattery() {}
 
@@ -119,6 +121,7 @@ final class BleBattery {
             for (String f : frames) arr.put(f);
             JSONObject res = new JSONObject(TagApp.py(ctx).callAttr("ble_ingest", arr.toString()).toString());
             lastMatched = res.optInt("matched", 0);
+            lastKnown = res.optInt("known", 0);
             JSONArray alerts = res.optJSONArray("alerts");
             if (alerts == null) alerts = new JSONArray();
             for (int i = 0; i < alerts.length(); i++) {

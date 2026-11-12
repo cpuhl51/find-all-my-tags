@@ -348,7 +348,8 @@ public class MainActivity extends Activity {
                 if (seen < 0) msg = I18n.t(this, "Bluetooth is off or not allowed.");
                 else if (k == 0) msg = I18n.t(this, "Run \"Check for locations now\" once first, then try again.");
                 else if (seen == 0) msg = I18n.t(this, "No tag in Bluetooth range right now.");
-                else if (BleBattery.lastMatched == 0) msg = I18n.t(this, "Bluetooth signals found, but none could be matched to your tags yet.");
+                else if (BleBattery.lastMatched == 0) msg = seen + I18n.t(this, " Find Hub signal(s) received, but none matched one of your ")
+                        + BleBattery.lastKnown + I18n.t(this, " prepared tags yet. Bring a tag right next to the phone and try again.");
                 else msg = BleBattery.lastMatched + I18n.t(this, " tag(s) nearby recognised – battery updated.");
                 Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
             });

@@ -174,3 +174,25 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 :root[data-theme="dark"] .detail .acts.pics button .dk { display: block; }
 .detail .acts.pics button.on { box-shadow: 0 0 0 3px var(--accent); }
 .near { color: var(--success); font-weight: 600; }
+
+/* Kartenauswahl: Auswahlpunkt neben dem Namen, ohne allgemeine Eingabefeld-Optik */
+.leaflet-control-layers-base label { display: block; margin: 0; }
+.leaflet-control-layers-base label > span, .leaflet-control-layers-base label > div { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 14px; }
+.leaflet-control-layers input[type=radio] { width: 16px; height: 16px; margin: 0; padding: 0; flex: none; border-radius: 50%; box-shadow: none !important; accent-color: var(--accent); }
+.leaflet-control-layers input[type=radio]:focus { box-shadow: none; outline: none; }
+/* „Was passiert dabei?“ direkt unter dem Text der Adress-Option, bündig */
+.check-help { margin: -6px 0 0 calc(13px + 9px + 4px); font-size: 12px; }
+/* Status-Beschriftung der Tags auf der Karte */
+.leaflet-tooltip.tag-label { border-left: 5px solid #16a34a; line-height: 1.2; }
+.leaflet-tooltip.tag-label .st { display: block; font-size: 10px; font-weight: 700; }
+.leaflet-tooltip.tag-label.s-low { border-left-color: #d97706; background: #fef3c7; color: #78350f; }
+.leaflet-tooltip.tag-label.s-crit { border-left-color: #b91c1c; background: #dc2626; color: #fff; }
+.leaflet-tooltip.tag-label.s-stale { border-left-color: #6b7280; background: #e5e7eb; color: #374151; }
+.leaflet-tooltip.tag-label.s-near { border-left-color: #16a34a; }
+.leaflet-tooltip.tag-label.s-crit::before { border-right-color: #dc2626; }
+.leaflet-tooltip.tag-label.s-low::before { border-right-color: #fef3c7; }
+.leaflet-tooltip.tag-label.s-stale::before { border-right-color: #e5e7eb; }
+/* Halb ausgefahrenes Panel: nur die Details des angetippten Tags */
+#panel.peek .panel-body > :not(#detail) { display: none !important; }
+#panel.peek .panel-body { max-height: none; }
+.ov-batt.found { filter: grayscale(.2); }
