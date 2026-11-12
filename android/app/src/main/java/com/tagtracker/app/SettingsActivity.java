@@ -302,7 +302,56 @@ public class SettingsActivity extends Activity {
             }
         }
 
-        heading(I18n.t("6. App lock (this phone only)"));
+        heading(I18n.t("6. Warning: tag not seen for a long time"));
+        note(I18n.t("If a tag has not been seen for longer than this, you get a notification once – often a sign of an "
+                + "empty battery or a lost tag. The tag is also marked with ⚠ in the list."));
+        int stale = TagApp.prefs(this).getInt("stale_hours", 72);
+        LinearLayout rowS = row();
+        int[] staleOpts = {24, 72, 168, 0};
+        for (int h : staleOpts) {
+            String label = h == 0 ? I18n.t("Off") : (h / 24) + I18n.t(" day(s)");
+            Button b = chip(label, v -> {
+                TagApp.prefs(this).edit().putInt("stale_hours", h).apply();
+                new Thread(() -> { try { TagApp.py(this).callAttr("set_stale_hours", h); } catch (Exception ignored) {} }).start();
+                render();
+            });
+            if (h == stale) b.setEnabled(false);
+            rowS.addView(b);
+        }
+        root.addView(rowS);
+
+        heading(I18n.t("7. Own server (view on PC)"));
+        note(I18n.t("Optional: the app sends your tags' locations to YOUR OWN web server after every check, so you can "
+                + "see the same map on a PC. Upload the Find All My Tags server package (PHP) to your web space first; "
+                + "its setup page shows the upload key. Nothing is sent anywhere else."));
+        String srv = TagApp.prefs(this).getString("server_url", "");
+        if (srv.isEmpty()) {
+            button(I18n.t("Set up server"), v -> showServerDialog());
+        } else {
+            info(I18n.t("✓ Uploading to: ") + srv);
+            button(I18n.t("Open PC view in browser"), v -> {
+                try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(srv))); } catch (Exception ignored) {}
+            });
+            button(I18n.t("Upload now"), v -> new Thread(() -> {
+                String msg;
+                try {
+                    String r = TagApp.py(this).callAttr("server_upload").toString();
+                    msg = I18n.t("Uploaded: ") + r.replace("ok:", "") + I18n.t(" new location(s)");
+                } catch (Exception e) {
+                    msg = I18n.t("Upload failed: ") + e.getMessage();
+                }
+                final String m = msg;
+                runOnUiThread(() -> toast(m));
+            }).start());
+            button(I18n.t("Change server"), v -> showServerDialog());
+            button(I18n.t("Turn off server upload"), v -> {
+                TagApp.prefs(this).edit().remove("server_url").apply();
+                new Thread(() -> { try { TagApp.py(this).callAttr("set_server", "", ""); } catch (Exception ignored) {} }).start();
+                render();
+            });
+        }
+
+        heading(I18n.t("8. App lock (this phone only)"));
         note(I18n.t("Protect the app with a password so no one who picks up your phone can open your tracker. "
                 + "The password and hint are stored ONLY on this phone – never sent to Google or Drive, so they "
                 + "can't be recovered from anywhere else. If you forget it and the hint doesn't help, reinstall the app."));
@@ -397,6 +446,47 @@ public class SettingsActivity extends Activity {
         sc.addView(tv);
         new AlertDialog.Builder(this).setTitle(I18n.t("Legal, disclaimer & privacy"))
                 .setView(sc).setPositiveButton(I18n.t("Close"), null).show();
+    }
+
+    private void showServerDialog() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(20);
+        box.setPadding(pad, pad, pad, 0);
+        EditText url = new EditText(this);
+        url.setHint(I18n.t("Server address, e.g. https://example.com/tags/"));
+        url.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        url.setText(TagApp.prefs(this).getString("server_url", ""));
+        EditText token = new EditText(this);
+        token.setHint(I18n.t("Upload key (shown on the server's setup page)"));
+        token.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        box.addView(url);
+        box.addView(token);
+        new AlertDialog.Builder(this)
+                .setTitle(I18n.t("Own server (view on PC)"))
+                .setView(box)
+                .setPositiveButton(I18n.t("Save"), (d, w) -> {
+                    String u = url.getText().toString().trim(), k = token.getText().toString().trim();
+                    if (u.isEmpty() || k.isEmpty()) { toast(I18n.t("Please enter address and key.")); return; }
+                    toast(I18n.t("Testing connection…"));
+                    new Thread(() -> {
+                        String msg;
+                        boolean ok = false;
+                        try {
+                            TagApp.py(this).callAttr("set_server", u, k);
+                            String norm = new JSONObject(TagApp.py(this).callAttr("server_info_json").toString()).optString("url", u);
+                            TagApp.prefs(this).edit().putString("server_url", norm).apply();
+                            msg = I18n.t("✓ Connected – locations are uploaded after every check.");
+                            ok = true;
+                        } catch (Exception e) {
+                            msg = I18n.t("Connection failed: ") + e.getMessage();
+                        }
+                        final String m = msg;
+                        runOnUiThread(() -> { toast(m); render(); });
+                    }).start();
+                })
+                .setNegativeButton(I18n.t("Cancel"), null)
+                .show();
     }
 
     private void showAppLockDialog() {

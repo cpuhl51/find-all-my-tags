@@ -13,6 +13,7 @@ final class Notify {
     private static final String CHANNEL = "sync";
     private static final String CHANNEL_ALERT = "theft";
     private static final String CHANNEL_BATTERY = "battery";
+    private static final String CHANNEL_STALE = "stale";
     private static final int ID = 1;
 
     private Notify() {}
@@ -30,6 +31,12 @@ final class Notify {
                 NotificationChannel ch = new NotificationChannel(CHANNEL_ALERT, I18n.t("Theft / movement alerts"),
                         NotificationManager.IMPORTANCE_HIGH); // loud: this is the important one
                 ch.setDescription(I18n.t("Alerts you when a guarded tag moves"));
+                nm.createNotificationChannel(ch);
+            }
+            if (nm.getNotificationChannel(CHANNEL_STALE) == null) {
+                NotificationChannel ch = new NotificationChannel(CHANNEL_STALE, I18n.t("Tag not seen"),
+                        NotificationManager.IMPORTANCE_DEFAULT);
+                ch.setDescription(I18n.t("Tells you when a tag has not been seen for a long time"));
                 nm.createNotificationChannel(ch);
             }
             if (nm.getNotificationChannel(CHANNEL_BATTERY) == null) {
@@ -118,6 +125,31 @@ final class Notify {
                 .build();
         try {
             nm.notify(2000 + rc % 1000, n);
+        } catch (SecurityException ignored) {
+        }
+    }
+
+    /** Meldung, wenn ein Tag länger als die eingestellte Zeit nicht gesehen wurde. */
+    static void staleAlert(Context ctx, String deviceId, String name, int hours) {
+        NotificationManager nm = mgr(ctx);
+        if (nm == null) return;
+        int rc = Math.abs(deviceId.hashCode());
+        PendingIntent open = PendingIntent.getActivity(ctx, rc + 7, new Intent(ctx, MainActivity.class),
+                PendingIntent.FLAG_IMMUTABLE);
+        Notification.Builder b = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                ? new Notification.Builder(ctx, CHANNEL_STALE)
+                : new Notification.Builder(ctx);
+        String when = hours >= 48 ? (hours / 24) + I18n.t(" days") : hours + I18n.t(" hours");
+        String text = I18n.t("Not seen for ") + when + I18n.t(". Battery empty, or the tag is somewhere without Android phones nearby?");
+        Notification nt = b.setContentTitle("⚠ " + name + ": " + I18n.t("not seen for a long time"))
+                .setContentText(text)
+                .setStyle(new Notification.BigTextStyle().bigText(text))
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setContentIntent(open)
+                .setAutoCancel(true)
+                .build();
+        try {
+            nm.notify(3000 + rc % 1000, nt);
         } catch (SecurityException ignored) {
         }
     }

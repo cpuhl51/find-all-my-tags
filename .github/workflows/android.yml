@@ -3,7 +3,7 @@ name: Android APK
 on:
   push:
     branches: [main]
-    paths: ["android/**", "web/**", "server/**", ".github/workflows/android.yml"]
+    paths: ["android/**", "web/**", "server/**", "server-php/**", "tools/**", ".github/workflows/android.yml"]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -61,6 +61,15 @@ jobs:
         with:
           name: FindAllMyTags-apk
           path: android/FindAllMyTags.apk
+
+      - name: Build server package (PC view)
+        working-directory: ${{ github.workspace }}
+        run: sh tools/make-php-package.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FindAllMyTags-server
+          path: dist/find-all-my-tags-server.zip
 
       - name: Publish release
         if: github.ref_type == 'tag'

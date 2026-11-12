@@ -425,6 +425,64 @@ final class I18n {
               "📖  So funktioniert's (Anleitung)");
         m.put("🔒 Guarding",
               "🔒 Wache");
+        m.put(" day(s)",
+              " Tag(e)");
+        m.put(" days",
+              " Tagen");
+        m.put(" hours",
+              " Stunden");
+        m.put(". Battery empty, or the tag is somewhere without Android phones nearby?",
+              " nicht mehr gesehen. Batterie leer, oder ist der Tag irgendwo ohne Android-Handys in der Nähe?");
+        m.put("6. Warning: tag not seen for a long time",
+              "6. Warnung: Tag lange nicht gesehen");
+        m.put("7. Own server (view on PC)",
+              "7. Eigener Server (Ansicht am PC)");
+        m.put("8. App lock (this phone only)",
+              "8. App-Sperre (nur auf diesem Handy)");
+        m.put("Change server",
+              "Server ändern");
+        m.put("Connection failed: ",
+              "Verbindung fehlgeschlagen: ");
+        m.put("If a tag has not been seen for longer than this, you get a notification once – often a sign of an empty battery or a lost tag. The tag is also marked with ⚠ in the list.",
+              "Wurde ein Tag länger als diese Zeit nicht gesehen, bekommst du einmal eine Meldung – oft ein Zeichen für eine leere Batterie oder einen verlorenen Tag. In der Liste ist er außerdem mit ⚠ markiert.");
+        m.put("Not seen for ",
+              "Seit ");
+        m.put("Off",
+              "Aus");
+        m.put("Open PC view in browser",
+              "PC-Ansicht im Browser öffnen");
+        m.put("Optional: the app sends your tags' locations to YOUR OWN web server after every check, so you can see the same map on a PC. Upload the Find All My Tags server package (PHP) to your web space first; its setup page shows the upload key. Nothing is sent anywhere else.",
+              "Optional: Die App schickt die Standorte deiner Tags nach jeder Abfrage an DEINEN EIGENEN Webserver, damit du dieselbe Karte am PC sehen kannst. Lade dafür zuerst das Server-Paket von Find All My Tags (PHP) auf deinen Webspace; seine Einrichtungsseite zeigt dir den Upload-Schlüssel. Sonst geht nichts irgendwohin.");
+        m.put("Own server (view on PC)",
+              "Eigener Server (Ansicht am PC)");
+        m.put("Please enter address and key.",
+              "Bitte Adresse und Schlüssel eingeben.");
+        m.put("Server address, e.g. https://example.com/tags/",
+              "Server-Adresse, z. B. https://example.com/tags/");
+        m.put("Set up server",
+              "Server einrichten");
+        m.put("Tag not seen",
+              "Tag nicht gesehen");
+        m.put("Tells you when a tag has not been seen for a long time",
+              "Meldet dir, wenn ein Tag lange nicht gesehen wurde");
+        m.put("Testing connection…",
+              "Teste Verbindung …");
+        m.put("Turn off server upload",
+              "Server-Upload ausschalten");
+        m.put("Upload failed: ",
+              "Upload fehlgeschlagen: ");
+        m.put("Upload key (shown on the server's setup page)",
+              "Upload-Schlüssel (steht auf der Einrichtungsseite des Servers)");
+        m.put("Upload now",
+              "Jetzt hochladen");
+        m.put("Uploaded: ",
+              "Hochgeladen: ");
+        m.put("not seen for a long time",
+              "lange nicht gesehen");
+        m.put("✓ Connected – locations are uploaded after every check.",
+              "✓ Verbunden – die Standorte werden nach jeder Abfrage hochgeladen.");
+        m.put("✓ Uploading to: ",
+              "✓ Lädt hoch nach: ");
         return m;
     }
 }

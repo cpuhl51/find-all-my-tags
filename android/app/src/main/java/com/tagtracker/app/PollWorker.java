@@ -48,6 +48,15 @@ public class PollWorker extends Worker {
             } catch (Exception ignored) {
             }
         }
+        // Warnung, wenn ein Tag lange nicht gesehen wurde (je Tag nur einmal, bis er wieder auftaucht)
+        try {
+            org.json.JSONArray st = new org.json.JSONArray(TagApp.py(ctx).callAttr("stale_alerts").toString());
+            for (int i = 0; i < st.length(); i++) {
+                org.json.JSONObject o = st.getJSONObject(i);
+                Notify.staleAlert(ctx, o.getString("id"), o.getString("name"), o.getInt("hours"));
+            }
+        } catch (Exception ignored) {
+        }
         // Akkustand: kurzer Bluetooth-Scan, nur wenn "Standort immer erlauben" gewährt ist.
         if (BleBattery.canScanInBackground(ctx)) {
             try {

@@ -139,6 +139,12 @@ def poll() -> int:
                 drive_default_upload()
         except Exception as e:
             _save_status(drive_default_error=str(e))
+        # Eigener Server (PC-Ansicht): neue Punkte hochladen. Zusatz, darf die Abfrage nie stören.
+        try:
+            if server_info()["configured"]:
+                server_upload()
+        except Exception as e:
+            _save_status(server_error=str(e) or type(e).__name__)
         # Close the network connection so the app uses ~no battery until the next check.
         try:
             finder.stop_listening()
@@ -368,6 +374,8 @@ def devices_json(interval_minutes: int, backup_enabled: bool, parked: bool = Fal
         d["battery"] = b if b else None
     return json.dumps({
         "devices": devices,
+        "stale_hours": stale_hours(),
+        "server_url": server_info()["url"],
         "license": info,
         "guard": bool(parked),
         "poller": {"enabled": True, "running": bool(s.get("running")), "last_run": s.get("last_run"),
@@ -441,3 +449,122 @@ def ble_known() -> int:
     """Wie viele Tags wir per Bluetooth erkennen können (nach dem ersten Standortabruf)."""
     from server import battery
     return battery.known_count()
+
+
+# ---------- Warnung "lange nicht gesehen" ----------
+
+def stale_hours() -> int:
+    """0 = aus. Standard 72 Stunden (3 Tage)."""
+    v = _load_status().get("stale_hours")
+    return 72 if v is None else int(v)
+
+
+def set_stale_hours(hours: int):
+    _save_status(stale_hours=max(0, int(hours)))
+
+
+def stale_alerts() -> str:
+    """Tags, die NEU länger als die Schwelle nicht gesehen wurden (je Tag nur einmal,
+    bis er wieder auftaucht). JSON-Liste [{id, name, hours}]."""
+    from server import db
+    h = stale_hours()
+    if h <= 0:
+        return "[]"
+    now = int(time.time())
+    s = _load_status()
+    told = s.get("stale_told", {})
+    out = []
+    for d in db.get_devices():
+        ts = d.get("last_ts")
+        if ts is None:
+            continue
+        if now - ts > h * 3600:
+            if told.get(d["id"]) != ts:      # für genau diesen letzten Standort noch nicht gemeldet
+                told[d["id"]] = ts
+                out.append({"id": d["id"], "name": d["name"], "hours": round((now - ts) / 3600)})
+        else:
+            told.pop(d["id"], None)          # wieder gesehen: später erneut warnen dürfen
+    _save_status(stale_told=told)
+    return json.dumps(out)
+
+
+# ---------- Eigener Server (PC-Ansicht) ----------
+
+def _norm_url(url: str) -> str:
+    url = (url or "").strip()
+    if url and not url.lower().startswith(("http://", "https://")):
+        url = "https://" + url
+    if url and not url.endswith("/"):
+        url += "/"
+    return url
+
+
+def server_info() -> dict:
+    s = _load_status()
+    url = s.get("server_url") or ""
+    return {"configured": bool(url and s.get("server_token")), "url": url,
+            "last": s.get("server_last"), "error": s.get("server_error")}
+
+
+def server_info_json() -> str:
+    return json.dumps(server_info())
+
+
+def set_server(url: str, token: str) -> str:
+    """Leere Adresse = ausschalten. Prüft die Verbindung sofort."""
+    url = _norm_url(url)
+    token = (token or "").strip()
+    if not url:
+        _save_status(server_url=None, server_token=None, server_last_id=0, server_error=None, server_last=None)
+        return "off"
+    old = _load_status()
+    prev = {k: old.get(k) for k in ("server_url", "server_token", "server_last_id")}
+    _save_status(server_url=url, server_token=token, server_last_id=0, server_error=None)
+    try:
+        return server_upload()
+    except Exception:
+        # Neue Adresse klappt nicht: vorherige (funktionierende) Einrichtung wiederherstellen
+        _save_status(**prev)
+        raise
+
+
+def server_upload() -> str:
+    """Schickt Tag-Liste (mit Akku) und alle Punkte seit dem letzten Upload an upload.php."""
+    import requests
+    from server import db
+    s = _load_status()
+    url, token = s.get("server_url"), s.get("server_token")
+    if not url or not token:
+        raise RuntimeError("Kein Server eingetragen.")
+    try:
+        from server import battery
+        bstate = battery.state()
+    except Exception:
+        bstate = {}
+    devices = []
+    for d in db.get_devices():
+        devices.append({k: d.get(k) for k in ("id", "name", "last_ts", "last_lat", "last_lon", "last_accuracy", "point_count")}
+                       | {"battery": bstate.get(d["id"])})
+    last_id = int(s.get("server_last_id") or 0)
+    sent = 0
+    while True:
+        with db.connect() as c:
+            rows = [dict(r) for r in c.execute(
+                "SELECT id, device_id, ts, lat, lon, altitude, accuracy, is_own_report, semantic_name "
+                "FROM locations WHERE id > ? ORDER BY id LIMIT 2000", (last_id,)).fetchall()]
+        body = {"devices": devices, "points": rows, "stale_hours": stale_hours()}
+        r = requests.post(url + "upload.php", json=body, timeout=30,
+                          headers={"X-Upload-Token": token, "User-Agent": "FindAllMyTags"})
+        if r.status_code == 403:
+            raise RuntimeError("Server lehnt den Upload-Schlüssel ab (403).")
+        if r.status_code != 200:
+            raise RuntimeError(f"Server antwortet mit Fehler {r.status_code}.")
+        if rows:
+            last_id = rows[-1]["id"]
+            sent += len(rows)
+            _save_status(server_last_id=last_id)
+        devices = []          # Tag-Liste nur beim ersten Paket mitschicken
+        if len(rows) < 2000:
+            break
+    _save_status(server_last=int(time.time()), server_error=None)
+    return f"ok:{sent}"

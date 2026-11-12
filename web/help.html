@@ -92,6 +92,41 @@
     <p class="muted2">Der Akkustand steckt <b>nicht</b> in Googles Standortdaten, sondern nur im Bluetooth-Signal des Tags selbst. Die App liest ihn deshalb, wenn ein Tag <b>in der Nähe deines Handys</b> ist (App öffnen oder „Akku prüfen“ tippen). Tags melden drei Stufen: <b>🟢 normal</b>, <b>🟡 schwach</b> und <b>🔴 kritisch</b> – keine genauen Prozent. Wird ein Akku schwach, bekommst du eine Meldung.</p>
   </div>
 
+  <div id="address">
+  <div class="card" lang="en">
+    <h2><span class="ic">📍</span> Showing the tag's address</h2>
+    <p class="muted2">Find Hub only delivers coordinates (e.g. 48.23178, 16.49118). If you turn on <b>“Show the tag's address in the details”</b>, the app asks the free map service <b>OpenStreetMap Nominatim</b> which street belongs to those coordinates, and shows e.g. “Margeritenweg, Aspern, Donaustadt” instead.</p>
+    <p class="muted2">For this, the coordinates of the tag you tapped are sent to OpenStreetMap over the internet – nothing else (no name, no account). It only happens when you open a tag's details. That's why it is off by default.</p>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">📍</span> Adresse des Tags anzeigen</h2>
+    <p class="muted2">Find Hub liefert nur Koordinaten (z. B. 48.23178, 16.49118). Schaltest du <b>„Adresse des Tags in den Details anzeigen“</b> ein, fragt die App beim kostenlosen Kartendienst <b>OpenStreetMap Nominatim</b> nach, welche Straße zu diesen Koordinaten gehört, und zeigt dann z. B. „Margeritenweg, Aspern, Donaustadt“ an.</p>
+    <p class="muted2">Dafür werden die Koordinaten des angetippten Tags übers Internet an OpenStreetMap geschickt – sonst nichts (kein Name, kein Konto). Das passiert nur, wenn du die Details eines Tags öffnest. Deshalb ist es standardmäßig aus.</p>
+  </div>
+  </div>
+
+  <div id="stale">
+  <div class="card" lang="en">
+    <h2><span class="ic">⚠</span> “Not seen for a long time”</h2>
+    <p class="muted2">If a tag has not been seen for longer than the time you set (default 3 days), you get a notification once and the tag is marked with ⚠ in the list. Common reasons: the battery is empty, or the tag is somewhere no Android phones pass by. You set the time under <b>System configuration &amp; info → 6.</b></p>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">⚠</span> „Lange nicht gesehen“</h2>
+    <p class="muted2">Wurde ein Tag länger als die eingestellte Zeit nicht gesehen (Standard 3 Tage), bekommst du einmal eine Meldung, und der Tag ist in der Liste mit ⚠ markiert. Häufige Gründe: Die Batterie ist leer, oder der Tag liegt irgendwo, wo keine Android-Handys vorbeikommen. Die Zeit stellst du unter <b>Systemkonfiguration und Infos → 6.</b> ein.</p>
+  </div>
+  </div>
+
+  <div id="pc">
+  <div class="card" lang="en">
+    <h2><span class="ic">🖥</span> View on a PC (own server)</h2>
+    <p class="muted2">Optional. Upload the small Find All My Tags server package (PHP, no database needed) to your own web space, open its <b>setup.php</b> and choose a password. In the app, enter the server address and upload key under <b>System configuration &amp; info → 7.</b> After every check, the app then sends the locations to <b>your</b> server, and you see the same map in any browser. The PC view is read-only: locating, ringing and the battery check only work in the app.</p>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">🖥</span> Ansicht am PC (eigener Server)</h2>
+    <p class="muted2">Optional. Lade das kleine Server-Paket von Find All My Tags (PHP, keine Datenbank nötig) auf deinen eigenen Webspace, ruf dort <b>setup.php</b> auf und leg ein Passwort fest. In der App trägst du unter <b>Systemkonfiguration und Infos → 7.</b> Server-Adresse und Upload-Schlüssel ein. Nach jeder Abfrage schickt die App die Standorte dann an <b>deinen</b> Server, und du siehst dieselbe Karte in jedem Browser. Am PC kannst du nur ansehen: Orten, Klingeln und Akku-Prüfung gehen nur in der App.</p>
+  </div>
+  </div>
+
   <div class="card" lang="en">
     <h2><span class="ic">⚑</span> First-time setup</h2>
     <ol class="steps">
@@ -115,11 +150,11 @@
 
   <div class="card" lang="en">
     <h2><span class="ic">★</span> What you can do</h2>
-    <p class="muted2">• See the full route for Today, 2 days, 7 days, 30 days, a year, or any dates &nbsp; • Replay the trip &nbsp; • Ring the tag when you're near it &nbsp; • Get battery warnings &nbsp; • Export CSV/GPX for the police &nbsp; • Lock the app with a password &nbsp; • Switch between OpenStreetMap, Google Maps &amp; satellite &nbsp; • Switch between German and English.</p>
+    <p class="muted2">• See the full route for Today, 2 days, 7 days, 30 days, a year, or any dates &nbsp; • Replay the trip &nbsp; • Ring the tag when you're near it &nbsp; • Get battery and “not seen” warnings &nbsp; • See the map on your PC &nbsp; • Export CSV/GPX for the police &nbsp; • Lock the app with a password &nbsp; • Switch between OpenStreetMap, Google Maps &amp; satellite &nbsp; • Switch between German and English.</p>
   </div>
   <div class="card" lang="de">
     <h2><span class="ic">★</span> Was du damit machen kannst</h2>
-    <p class="muted2">• Ganze Route für heute, 2 Tage, 7 Tage, 30 Tage, ein Jahr oder einen beliebigen Zeitraum &nbsp; • Fahrt abspielen &nbsp; • Tag klingeln lassen, wenn du in der Nähe bist &nbsp; • Akku-Warnungen bekommen &nbsp; • CSV/GPX für die Polizei exportieren &nbsp; • App mit Passwort sperren &nbsp; • Zwischen OpenStreetMap, Google Maps &amp; Satellit wechseln &nbsp; • Zwischen Deutsch und Englisch wechseln.</p>
+    <p class="muted2">• Ganze Route für heute, 2 Tage, 7 Tage, 30 Tage, ein Jahr oder einen beliebigen Zeitraum &nbsp; • Fahrt abspielen &nbsp; • Tag klingeln lassen, wenn du in der Nähe bist &nbsp; • Warnungen zu Akku und „lange nicht gesehen“ &nbsp; • Karte am PC ansehen &nbsp; • CSV/GPX für die Polizei exportieren &nbsp; • App mit Passwort sperren &nbsp; • Zwischen OpenStreetMap, Google Maps &amp; Satellit wechseln &nbsp; • Zwischen Deutsch und Englisch wechseln.</p>
   </div>
 
   <div class="card">
@@ -145,7 +180,7 @@
   cb.addEventListener('change', function(){ b.disabled = !cb.checked; b.style.opacity = cb.checked ? '1' : '.5'; });
   b.addEventListener('click', function(){
     try { localStorage.setItem('tt_consent', '1'); } catch(e){}
-    if (window.TagTrackerApp && TagTrackerApp.doneHelp) TagTrackerApp.doneHelp(); else window.close();
+    if (window.TagTrackerApp && TagTrackerApp.doneHelp) TagTrackerApp.doneHelp(); else if (history.length > 1) history.back(); else window.close();
   });
 </script>
 </body>

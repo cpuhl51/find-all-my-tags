@@ -1,0 +1,33 @@
+Find All My Tags – Server-Paket für die PC-Ansicht
+==================================================
+
+Damit siehst du dieselbe Karte mit allen Tags am PC im Browser. Die App am Handy
+schickt die Standorte nach jeder Abfrage an DEINEN Webserver. Sonst geht nichts
+irgendwohin.
+
+Voraussetzungen
+- Normaler Webspace mit PHP 7.4 oder neuer (z. B. all-inkl). Keine Datenbank nötig.
+- HTTPS (Let's Encrypt), damit Passwort und Standorte verschlüsselt übertragen werden.
+
+Einrichten (ca. 5 Minuten)
+1. Den Ordner "find-all-my-tags-server" per FTP auf deinen Webspace laden,
+   z. B. nach  /tags/   (den Namen kannst du frei wählen).
+2. Im Browser aufrufen:  https://deine-domain.at/tags/setup.php
+3. Ein Passwort festlegen (mind. 8 Zeichen). Danach zeigt die Seite
+   "Server-Adresse" und "Upload-Schlüssel".
+4. In der App: Systemkonfiguration und Infos → 7. Eigener Server → Server einrichten.
+   Beide Werte eintragen und speichern. Die App testet die Verbindung sofort.
+5. Fertig. Am PC:  https://deine-domain.at/tags/  öffnen und mit dem Passwort anmelden.
+
+Gut zu wissen
+- Die Daten liegen im Unterordner "data" (vor direktem Abruf geschützt).
+  Hat PHP dort keine Schreibrechte, meldet die Einrichtung das; dann im FTP-Programm
+  Schreibrechte setzen (750 oder 755).
+- Den Upload-Schlüssel siehst du jederzeit wieder unter setup.php (wenn angemeldet).
+- Passwort vergessen: data/config.json per FTP löschen und setup.php neu aufrufen
+  (danach in der App den neuen Schlüssel eintragen). Die Standorte bleiben erhalten.
+- Alles löschen: den ganzen Ordner per FTP entfernen.
+- Am PC ist die Karte nur zum Ansehen. Orten, Klingeln und Akku-Prüfung gehen nur in der App.
+
+Lizenz: GPL-3.0, basiert auf tag-tracker und GoogleFindMyTools.
+Kontakt: Christoph Puhl, apps@puhl.ch

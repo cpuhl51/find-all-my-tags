@@ -153,3 +153,9 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 .seg button.on { background: var(--surface); color: var(--accent); border-color: var(--border); font-weight: 600; }
 .views { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; font-size: 12px; color: var(--muted); }
 #lang b { color: var(--accent); }
+
+/* Großer Pfeil zum Ein-/Ausklappen der Liste */
+#toggle.toggle-big { font-size: 26px; line-height: 1; min-width: 52px; min-height: 44px; padding: 4px 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 12px; }
+/* gestapelte Tags: Linien zum echten Ort */
+.ov-row.stale .ov-seen { color: var(--warn); font-weight: 600; }
+.stale-note { color: var(--warn); font-weight: 600; }

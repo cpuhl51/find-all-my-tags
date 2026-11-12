@@ -1,6 +1,28 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "verlauf": [
+    {
+      "version": "1.3.0",
+      "datum": "2026-11-12",
+      "aenderungen": [
+        "Warnung „lange nicht gesehen“ mit Meldung und ⚠ in der Liste (Zeit einstellbar)",
+        "PC-Ansicht: Standorte an den eigenen Server schicken und die Karte im Browser ansehen",
+        "Tags am selben Ort werden geordnet nebeneinander gezeigt, mit Linie zum echten Ort",
+        "Tipp auf einen Tag auf der Karte öffnet seine Details, auch bei eingeklappter Liste",
+        "Umbenennen und Aktualisierung im Minutentakt entfernt",
+        "Größerer Knopf zum Ein- und Ausklappen der Liste",
+        "Erklärungen zu Adressanzeige, Warnung und PC-Ansicht in der Anleitung"
+      ],
+      "aenderungen_en": [
+        "“Not seen for a long time” warning with notification and ⚠ in the list (time adjustable)",
+        "PC view: send locations to your own server and see the map in a browser",
+        "Tags at the same place are shown neatly side by side, with a line to the real spot",
+        "Tapping a tag on the map opens its details, even with the list collapsed",
+        "Rename and once-a-minute refresh removed",
+        "Bigger button to collapse and expand the list",
+        "Explanations of address display, warning and PC view in the guide"
+      ]
+    },
     {
       "version": "1.2.0",
       "datum": "2026-11-12",

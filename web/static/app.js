@@ -46,12 +46,16 @@
   let devices = [], focusId = store.get('focus') || null, historyOn = false;
   let range = { h: store.get('range') || '168' };
   let points = [], playTimer = null, fittedOnce = false;
+  let readOnly = false, staleHours = 72, serverUrl = '';
 
   // Im Android-App läuft alles über die Native-Brücke, sonst über den Web-Server.
   const NATIVE = window.Native;
+  // Das PHP-Paket für den eigenen Server setzt window.API_PATH (keine Umschreibregeln nötig).
+  const apiUrl = (path) => (window.API_PATH ? window.API_PATH(path) : path);
+  const loginUrl = () => (window.LOGIN_URL || '/login');
   async function api(path, opts = {}) {
-    const r = await fetch(path, { credentials: 'same-origin', ...opts });
-    if (r.status === 401) { location.href = '/login'; throw new Error('logged out'); }
+    const r = await fetch(apiUrl(path), { credentials: 'same-origin', ...opts });
+    if (r.status === 401) { location.href = loginUrl(); throw new Error('logged out'); }
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
     return r.json();
   }
@@ -59,6 +63,7 @@
     devices: () => NATIVE ? JSON.parse(NATIVE.devices()) : api('/api/devices'),
     history: (id, s, e) => NATIVE ? JSON.parse(NATIVE.history(id, s, e))
       : api(`/api/history/${encodeURIComponent(id)}?start=${s}&end=${e}`),
+
     pollNow: () => NATIVE ? NATIVE.pollNow() : api('/api/poll-now', { method: 'POST' }),
     locate: (id) => NATIVE ? NATIVE.locateNow(id) : api(`/api/locate/${encodeURIComponent(id)}`, { method: 'POST' }),
     sound: (id) => NATIVE ? NATIVE.playSound(id) : api(`/api/sound/${encodeURIComponent(id)}`, { method: 'POST' }),
@@ -156,7 +161,7 @@
   }
   function focusOn(d, zoomIn) {
     if (!d || d.last_lat == null) return;
-    const z = zoomIn ? Math.max(map.getZoom(), 16) : map.getZoom();
+    const z = zoomIn ? Math.max(map.getZoom(), 18) : map.getZoom();
     const f = freeArea(), size = map.getSize();
     // Zielpunkt: waagrecht mittig, senkrecht etwas über der Mitte des freien Bereichs
     const target = L.point((f.x0 + f.x1) / 2, f.y0 + (f.y1 - f.y0) * 0.42);
@@ -177,6 +182,11 @@
   async function loadDevices() {
     const res = await data.devices();
     devices = res.devices || [];
+    readOnly = !!res.readonly;
+    if (res.stale_hours != null) staleHours = Number(res.stale_hours) || 0;
+    serverUrl = res.server_url || '';
+    $('pcView').hidden = !serverUrl || !NATIVE;
+    $('pollNow').hidden = readOnly;
     if (focusId && !focused()) { focusId = null; historyOn = false; }
     renderMarkers();
     renderOverview();
@@ -185,7 +195,9 @@
     $('pollStatus').textContent = p.enabled === false ? t('Automatic checking is off on this server.')
       : p.running ? t('Checking Google for new locations…')
       : p.last_error ? t('Last check failed: {e}', { e: p.last_error })
-      : p.last_run ? t('Last checked {ago} · every {n} min', { ago: ago(p.last_run), n: p.interval_minutes }) : t('Starting…');
+      : p.last_run ? (p.interval_minutes ? t('Last checked {ago} · every {n} min', { ago: ago(p.last_run), n: p.interval_minutes })
+        : t('Last update from the app {ago}', { ago: ago(p.last_run) }))
+      : (readOnly ? t('No data from the app yet.') : t('Starting…'));
     renderSync(res.backup);
     if (!fittedOnce && devices.some((d) => d.last_lat != null)) {
       fittedOnce = true;
@@ -194,19 +206,47 @@
     }
   }
 
+  // Tags, die auf der Karte (fast) übereinander liegen, werden zu einer Gruppe und
+  // senkrecht untereinander daneben angeordnet, mit dünner Linie zum echten Ort.
+  const STACK_R = 26, STACK_STEP = 28, STACK_DX = 34;
+  function layout() {
+    const items = devices.filter((d) => d.last_lat != null)
+      .map((d) => ({ d, p: map.latLngToContainerPoint([d.last_lat, d.last_lon]) }));
+    const groups = [];
+    items.forEach((o) => {
+      const g = groups.find((g) => g.c.distanceTo(o.p) < STACK_R);
+      if (g) g.items.push(o); else groups.push({ c: o.p, real: [o.d.last_lat, o.d.last_lon], items: [o] });
+    });
+    groups.forEach((g) => {
+      if (g.items.length < 2) { g.items[0].pos = [g.items[0].d.last_lat, g.items[0].d.last_lon]; return; }
+      g.items.sort((a, b) => String(a.d.name).localeCompare(String(b.d.name)));
+      const n = g.items.length, y0 = g.c.y - ((n - 1) * STACK_STEP) / 2;
+      g.items.forEach((o, i) => { o.pos = map.containerPointToLatLng(L.point(g.c.x + STACK_DX, y0 + i * STACK_STEP)); });
+    });
+    return groups;
+  }
   function renderMarkers() {
     layers.all.clearLayers();
-    devices.forEach((d) => {
-      if (d.last_lat == null) return;
-      const on = d.id === focusId, size = on ? 30 : 22;
-      const icon = L.divIcon({ className: 'tag-icon', html: iconSvg(d, size, on), iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
-      L.marker([d.last_lat, d.last_lon], { icon, zIndexOffset: on ? 1000 : 0, keyboard: false })
-        .bindTooltip(`${battDot(d)} ${esc(d.name)}`.trim(), { permanent: true, direction: 'right', offset: [size / 2, 0], className: 'tag-label' })
-        .on('click', () => select(d.id))
-        .addTo(layers.all);
-      if (d.last_accuracy && on) L.circle([d.last_lat, d.last_lon], { radius: d.last_accuracy, color: styleOf(d).color, weight: 1, fillOpacity: 0.1, interactive: false }).addTo(layers.all);
+    layout().forEach((g) => {
+      const stacked = g.items.length > 1;
+      if (stacked) {
+        g.items.forEach((o) => L.polyline([g.real, o.pos], { color: '#94a3b8', weight: 1, opacity: 0.9, interactive: false }).addTo(layers.all));
+        L.circleMarker(g.real, { radius: 4, color: '#fff', weight: 2, fillColor: '#475569', fillOpacity: 1, interactive: false }).addTo(layers.all);
+      }
+      g.items.forEach(({ d, pos }) => {
+        const on = d.id === focusId, size = on ? 28 : 22;
+        const icon = L.divIcon({ className: 'tag-icon', html: iconSvg(d, size, on), iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+        L.marker(pos, { icon, zIndexOffset: on ? 1000 : 0, keyboard: false })
+          .bindTooltip(`${battDot(d)} ${esc(d.name)}`.trim(), { permanent: true, direction: 'right', offset: [size / 2, 0], className: 'tag-label' })
+          .on('click', () => select(d.id, true))
+          .addTo(layers.all);
+        if (d.last_accuracy && on) L.circle([d.last_lat, d.last_lon], { radius: d.last_accuracy, color: styleOf(d).color, weight: 1, fillOpacity: 0.08, interactive: false }).addTo(layers.all);
+      });
     });
   }
+  map.on('zoomend', () => renderMarkers());
+  map.on('resize', () => renderMarkers());
+  const isStale = (d) => staleHours > 0 && d.last_ts != null && Date.now() / 1000 - d.last_ts > staleHours * 3600;
 
   function renderOverview() {
     const el = $('latest');
@@ -215,8 +255,9 @@
     el.innerHTML = `<div class="ov-head"><b>${esc(t('All tags'))} (${devices.length})</b></div>`
       + '<div class="ov">' + list.map((d) => {
         const seen = d.last_ts != null ? ago(d.last_ts) : t('never');
-        return `<button type="button" class="ov-row${d.id === focusId ? ' on' : ''}" data-id="${esc(d.id)}">${iconSvg(d, 20)}`
-          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen">${esc(seen)}</span></span>`
+        const st = isStale(d) || d.last_ts == null;
+        return `<button type="button" class="ov-row${d.id === focusId ? ' on' : ''}${st ? ' stale' : ''}" data-id="${esc(d.id)}">${iconSvg(d, 20)}`
+          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen">${st ? '⚠ ' : ''}${esc(seen)}</span></span>`
           + `<span class="ov-batt">${battDot(d)}</span></button>`;
       }).join('') + '</div>';
     el.querySelectorAll('.ov-row').forEach((r) => r.addEventListener('click', () => select(r.dataset.id)));
@@ -224,13 +265,22 @@
 
   // Tipp auf einen Tag: im sichtbaren Bereich der Karte zentrieren und Details zeigen.
   // Die Gesamtansicht bleibt; ein zweiter Tipp auf denselben Tag hebt die Auswahl auf.
-  function select(id) {
+  function select(id, fromMap) {
+    const panel = $('panel');
+    if (fromMap) {
+      if (panel.classList.contains('collapsed')) panel.classList.remove('collapsed');
+      if (focusId === id) { const d0 = focused(); if (d0) setTimeout(() => focusOn(d0, false), 60); return; }
+    }
     if (focusId === id) { focusId = null; historyOn = false; clearHistory(); }
     else { focusId = id; if (historyOn) loadHistory().catch(console.error); }
     store.set('focus', focusId || '');
     renderMarkers(); renderOverview(); renderDetail();
     const d = focused();
-    if (d) focusOn(d, true);
+    if (d) {
+      const body = panel.querySelector('.panel-body'); if (body) body.scrollTop = 0;
+      panel.scrollTop = 0;
+      setTimeout(() => focusOn(d, true), 60);  // nach dem Aufklappen, damit der freie Bereich stimmt
+    }
   }
 
   function renderDetail() {
@@ -244,34 +294,35 @@
     el.innerHTML = `<div class="d-head">${iconSvg(d, 22)}<b>${esc(d.name)}</b><button type="button" class="icon" id="dClose">✕</button></div>`
       + `<div>${seen}</div>`
       + (d.last_lat != null ? `<div id="addr" class="muted">📍 ${d.last_lat.toFixed(5)}, ${d.last_lon.toFixed(5)}</div>` : '')
+      + (isStale(d) ? `<div class="stale-note">⚠ ${esc(t('Not seen for over {n} – battery empty or out of range?', { n: staleText() }))}</div>` : '')
       + battLine(d)
       + (d.last_error ? `<div class="error small">${esc(d.last_error)}</div>` : '')
-      + `<div class="acts">`
+      + `<div class="acts${readOnly ? ' ro' : ''}">`
       + `<button type="button" id="aHist" class="${historyOn ? 'on' : ''}">🕓 ${esc(t('History'))}</button>`
-      + `<button type="button" id="aLocate">📍 ${esc(t('Locate'))}</button>`
-      + `<button type="button" id="aRing">🔔 ${esc(t('Ring'))}</button>`
+      + (readOnly ? '' : `<button type="button" id="aLocate">📍 ${esc(t('Locate'))}</button>`
+      + `<button type="button" id="aRing">🔔 ${esc(t('Ring'))}</button>`)
       + `<button type="button" id="aShare">↗ ${esc(t('Share'))}</button>`
-      + `</div>`
-      + `<div style="margin-top:6px"><button type="button" class="link" id="aRename">✎ ${esc(t('Rename'))}</button></div>`;
+      + `</div>`;
     $('dClose').onclick = () => select(d.id);
     $('aHist').onclick = () => {
       historyOn = !historyOn; renderDetail();
       if (historyOn) loadHistory().catch(alert); else { clearHistory(); focusOn(d, false); }
     };
-    $('aLocate').onclick = () => locateNow(d);
-    $('aRing').onclick = async () => { try { await data.sound(d.id); $('pollStatus').textContent = t('Ringing the tag…'); } catch (e) { alert(e.message); } };
+    if (!readOnly) {
+      $('aLocate').onclick = () => locateNow(d);
+      $('aRing').onclick = async () => { try { await data.sound(d.id); $('pollStatus').textContent = t('Ringing the tag…'); } catch (e) { alert(e.message); } };
+    }
     $('aShare').onclick = () => share(d);
-    $('aRename').onclick = async () => {
-      const name = prompt(t('New name for this tag') + '\n(' + t('Name is only changed in this app, not at Google.') + ')', d.name);
-      if (!name) return;
-      await data.rename(d.id, name); refresh();
-    };
     if (historyOn) $('histTitle').textContent = t('History of {name}', { name: d.name });
     if (d.last_lat != null) addressFor(d.last_lat, d.last_lon).then((a) => { const ae = $('addr'); if (ae && a) ae.textContent = '📍 ' + a; });
   }
   document.addEventListener('click', (e) => {
     if (e.target.closest && e.target.closest('.batt-check') && NATIVE && NATIVE.checkBatteries) NATIVE.checkBatteries();
   });
+
+  function staleText() {
+    return staleHours % 24 === 0 ? t('{n} days', { n: staleHours / 24 }) : t('{n} hours', { n: staleHours });
+  }
 
   function renderSync(b) {
     const el = $('sync');
@@ -438,11 +489,17 @@
     $('server').hidden = false;
     $('server').addEventListener('click', () => window.TagTrackerApp.changeServer());
   }
+  $('pcView').addEventListener('click', () => { if (!serverUrl) return; if (NATIVE && NATIVE.openUrl) NATIVE.openUrl(serverUrl); else window.open(serverUrl, '_blank'); });
+  $('addrHelp').addEventListener('click', (e) => {
+    if (NATIVE && NATIVE.openHelp) { e.preventDefault(); NATIVE.openHelp('address'); }
+    else { e.preventDefault(); location.href = 'help.html?lang=' + (window.I18N ? I18N.lang : 'en') + '#address'; }
+  });
+  if (readOnly) $('logout').textContent = t('Sign out');
   if (NATIVE) {
-    $('logout').textContent = t('Settings');
+    $('logout').textContent = t('System configuration & info');
     $('logout').addEventListener('click', () => NATIVE.openSettings());
   } else {
-    $('logout').addEventListener('click', async () => { await api('/api/logout', { method: 'POST' }); location.href = '/login'; });
+    $('logout').addEventListener('click', async () => { await api('/api/logout', { method: 'POST' }).catch(() => {}); location.href = loginUrl(); });
   }
 
   async function refresh() {
@@ -450,7 +507,8 @@
   }
   // Die App ruft das nach einem Bluetooth-Akku-Scan auf.
   window.reloadDevices = () => loadDevices().catch(console.error);
-  setInterval(() => { if ($('autoRefresh').checked && !document.hidden) loadDevices().catch(console.error); }, 60000);
+  // Keine Aktualisierung im Minutentakt: neu geladen wird, wenn die Seite wieder sichtbar wird.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadDevices().catch(console.error); });
 
   if (range.h === 'custom') range.h = '168';
   markRange();

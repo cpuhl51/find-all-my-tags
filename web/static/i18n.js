@@ -146,6 +146,16 @@
     'Last seen': 'Zuletzt gesehen',
     'never': 'noch nie',
     'Name is only changed in this app, not at Google.': 'Der Name wird nur in dieser App geändert, nicht bei Google.',
+    // 1.3.0
+    "Show the tag's address in the details": 'Adresse des Tags in den Details anzeigen',
+    'What happens here?': 'Was passiert dabei?',
+    '🖥 PC view': '🖥 PC-Ansicht',
+    'System configuration & info': 'Systemkonfiguration und Infos',
+    'Not seen for over {n} – battery empty or out of range?': 'Seit über {n} nicht gesehen – Batterie leer oder außer Reichweite?',
+    '{n} days': '{n} Tagen',
+    '{n} hours': '{n} Stunden',
+    'Last update from the app {ago}': 'Letzte Aktualisierung von der App {ago}',
+    'No data from the app yet.': 'Noch keine Daten von der App.',
     // Sprache
     'Language': 'Sprache',
   };

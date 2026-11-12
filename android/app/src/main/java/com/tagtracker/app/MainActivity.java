@@ -107,6 +107,19 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void openUrl(String url) {
+            runOnUiThread(() -> {
+                try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}
+            });
+        }
+
+        @JavascriptInterface
+        public void openHelp(String anchor) {
+            runOnUiThread(() -> startActivity(new Intent(MainActivity.this, HelpActivity.class)
+                    .putExtra(HelpActivity.EXTRA_ANCHOR, anchor)));
+        }
+
+        @JavascriptInterface
         public String lang() {
             return I18n.code(MainActivity.this);
         }

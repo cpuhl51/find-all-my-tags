@@ -18,6 +18,8 @@ public class HelpActivity extends Activity {
     static final String EXTRA_ONBOARD = "onboard";
     /** Optional: another bundled page to show instead of help.html (e.g. info.html). */
     static final String EXTRA_PAGE = "page";
+    /** Optional: Abschnitt der Seite, zu dem gesprungen wird (z. B. "address"). */
+    static final String EXTRA_ANCHOR = "anchor";
 
     private boolean onboard;
 
@@ -53,7 +55,9 @@ public class HelpActivity extends Activity {
                 return true;
             }
         });
-        web.loadUrl("https://appassets.androidplatform.net/assets/web/" + page + "?lang=" + I18n.code(this));
+        String anchor = getIntent().getStringExtra(EXTRA_ANCHOR);
+        String frag = anchor != null && anchor.matches("[a-z-]+") ? "#" + anchor : "";
+        web.loadUrl("https://appassets.androidplatform.net/assets/web/" + page + "?lang=" + I18n.code(this) + frag);
     }
 
     class Bridge {

@@ -18,3 +18,4 @@ android/local.properties
 CLAUDE.md
 memory/
 *.memory
+dist/
