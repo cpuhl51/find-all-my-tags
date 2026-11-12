@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>How Tag Tracker works</title>
+<title>How Find All My Tags works</title>
+<script src="static/i18n.js"></script>
 <link rel="stylesheet" href="static/style.css">
 <style>
   body { background: var(--bg); }
@@ -41,19 +42,27 @@
 <div class="wrap">
   <div class="hero">
     <div class="logo"><svg viewBox="0 0 108 108"><path d="M54 20c-14 0-24 10-24 24 0 17 24 44 24 44s24-27 24-44c0-14-10-24-24-24z" fill="#fff"/><circle cx="54" cy="44" r="9" fill="#2563eb"/></svg></div>
-    <h1>Tag Tracker</h1>
-    <p>Your tag's full travel history &amp; anti-theft alerts</p>
+    <h1>Find All My Tags</h1>
+    <p lang="en">All your tags, their full travel history, battery status &amp; anti-theft alerts</p>
+    <p lang="de">Alle deine Tags, ihr ganzer Verlauf, Akkustand &amp; Diebstahlalarm</p>
   </div>
 
-  <div class="card">
+  <div class="card" lang="en">
     <h2><span class="ic">?</span> Why this app exists</h2>
     <div class="vs">
-      <div class="bad"><h3>Google Find Hub</h3><p class="muted2">Shows only the <b>last</b> location. No history — you can't see where your tag has been.</p></div>
-      <div class="good"><h3>Tag Tracker</h3><p class="muted2">Saves <b>every</b> location over time: full route, day→year history, replay, and theft alerts.</p></div>
+      <div class="bad"><h3>Google Find Hub</h3><p class="muted2">Shows only the <b>last</b> location, one tag at a time. No history — you can't see where your tag has been.</p></div>
+      <div class="good"><h3>Find All My Tags</h3><p class="muted2">Saves <b>every</b> location of <b>all</b> your tags: full route, day→year history, replay, battery warnings and theft alerts.</p></div>
+    </div>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">?</span> Wozu diese App?</h2>
+    <div class="vs">
+      <div class="bad"><h3>Google Find Hub</h3><p class="muted2">Zeigt nur den <b>letzten</b> Standort, und immer nur von einem Tag. Kein Verlauf – du siehst nicht, wo der Tag überall war.</p></div>
+      <div class="good"><h3>Find All My Tags</h3><p class="muted2">Speichert <b>jeden</b> Standort <b>aller</b> deiner Tags: ganze Route, Verlauf von einem Tag bis zu einem Jahr, Wiedergabe, Akku-Warnung und Diebstahlalarm.</p></div>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" lang="en">
     <h2><span class="ic">↻</span> How a location reaches your phone</h2>
     <ul class="flow">
       <li><span class="n">1</span><div>Your tag broadcasts a tiny encrypted Bluetooth signal every 1–2 seconds.</div></li>
@@ -63,35 +72,73 @@
     </ul>
     <p class="muted2">Updates come whenever a phone passes the tag — often in busy areas, rarely in empty ones. Your phone receives over the internet, so the tag can be anywhere.</p>
   </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">↻</span> Wie ein Standort zu deinem Handy kommt</h2>
+    <ul class="flow">
+      <li><span class="n">1</span><div>Dein Tag sendet alle 1–2 Sekunden ein winziges, verschlüsseltes Bluetooth-Signal.</div></li>
+      <li><span class="n">2</span><div>Jedes Android-Handy in der Nähe (~10–30 m) empfängt es und lädt die verschlüsselte Position zu Google hoch – unbemerkt und anonym.</div></li>
+      <li><span class="n">3</span><div>Dein Handy holt sie übers Internet von Google, und <b>nur dein Handy</b> kann sie entschlüsseln (das ist der Schritt „Entsperren“).</div></li>
+      <li><span class="n">4</span><div>Der Standort landet auf deiner Karte, im Verlauf und in Google Drive.</div></li>
+    </ul>
+    <p class="muted2">Neue Standorte gibt es, sobald ein Handy am Tag vorbeikommt – in belebten Gegenden oft, in einsamen selten. Dein Handy empfängt übers Internet, der Tag kann also überall sein.</p>
+  </div>
 
-  <div class="card">
+  <div class="card" lang="en">
+    <h2><span class="ic">🔋</span> Battery status</h2>
+    <p class="muted2">The battery level is <b>not</b> in Google's location data. It is only inside the tag's own Bluetooth signal. So the app reads it when a tag is <b>near your phone</b> (open the app, or tap “Check battery”). Tags report three levels: <b>🟢 normal</b>, <b>🟡 low</b> and <b>🔴 critical</b> – no exact percentage. When a battery gets low, you get a notification.</p>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">🔋</span> Akkustand</h2>
+    <p class="muted2">Der Akkustand steckt <b>nicht</b> in Googles Standortdaten, sondern nur im Bluetooth-Signal des Tags selbst. Die App liest ihn deshalb, wenn ein Tag <b>in der Nähe deines Handys</b> ist (App öffnen oder „Akku prüfen“ tippen). Tags melden drei Stufen: <b>🟢 normal</b>, <b>🟡 schwach</b> und <b>🔴 kritisch</b> – keine genauen Prozent. Wird ein Akku schwach, bekommst du eine Meldung.</p>
+  </div>
+
+  <div class="card" lang="en">
     <h2><span class="ic">⚑</span> First-time setup</h2>
     <ol class="steps">
-      <li><b>Sign in to Google</b><span class="muted2">Use the account your tag is on. This lists your tags.</span></li>
+      <li><b>Sign in to Google</b><span class="muted2">Use the account your tags are on. This lists your tags.</span></li>
       <li><b>Unlock encryption</b> <span class="pill">required</span><span class="muted2">Enter your phone's screen lock on Google's page — this lets your phone decrypt locations. Without it the map stays empty.</span></li>
-      <li><b>Turn on background checking</b><span class="muted2">The app checks every 15 min and saves each location, using almost no battery.</span></li>
+      <li><b>Turn on background checking</b><span class="muted2">The app checks every 15 min or more and saves each location, using almost no battery.</span></li>
       <li><b>Sync to Google Drive</b> <span class="pill">recommended</span><span class="muted2">Default mode auto-saves to your Drive, so a new phone gets your history back automatically.</span></li>
-      <li><b>Park &amp; guard</b><span class="muted2">Tap Park when you leave the bike — you'll get a loud alert if it moves.</span></li>
+      <li><b>Allow the battery check</b> <span class="pill">optional</span><span class="muted2">Lets the app read the battery of tags near you via Bluetooth.</span></li>
+    </ol>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">⚑</span> Ersteinrichtung</h2>
+    <ol class="steps">
+      <li><b>Bei Google anmelden</b><span class="muted2">Mit dem Konto, auf dem deine Tags registriert sind. Damit werden deine Tags aufgelistet.</span></li>
+      <li><b>Verschlüsselung entsperren</b> <span class="pill">nötig</span><span class="muted2">Gib auf Googles Seite die Bildschirmsperre deines Handys ein – damit kann dein Handy die Standorte entschlüsseln. Ohne diesen Schritt bleibt die Karte leer.</span></li>
+      <li><b>Abfrage im Hintergrund einschalten</b><span class="muted2">Die App fragt alle 15 Min. oder seltener ab und speichert jeden Standort, bei kaum Akkuverbrauch.</span></li>
+      <li><b>Mit Google Drive synchronisieren</b> <span class="pill">empfohlen</span><span class="muted2">Der Standardmodus sichert automatisch in dein Drive, ein neues Handy bekommt den Verlauf so automatisch zurück.</span></li>
+      <li><b>Akku-Prüfung erlauben</b> <span class="pill">optional</span><span class="muted2">Damit liest die App per Bluetooth den Akku der Tags in deiner Nähe.</span></li>
     </ol>
   </div>
 
-  <div class="card">
+  <div class="card" lang="en">
     <h2><span class="ic">★</span> What you can do</h2>
-    <p class="muted2">• See the full route for Today, 2 days, 7 days, 30 days, a year, or any dates &nbsp; • Replay the trip &nbsp; • Ring the tag when you're near it &nbsp; • Export CSV/GPX for the police &nbsp; • Lock the app with a password &nbsp; • Switch between OpenStreetMap, Google Maps &amp; satellite.</p>
+    <p class="muted2">• See the full route for Today, 2 days, 7 days, 30 days, a year, or any dates &nbsp; • Replay the trip &nbsp; • Ring the tag when you're near it &nbsp; • Get battery warnings &nbsp; • Export CSV/GPX for the police &nbsp; • Lock the app with a password &nbsp; • Switch between OpenStreetMap, Google Maps &amp; satellite &nbsp; • Switch between German and English.</p>
+  </div>
+  <div class="card" lang="de">
+    <h2><span class="ic">★</span> Was du damit machen kannst</h2>
+    <p class="muted2">• Ganze Route für heute, 2 Tage, 7 Tage, 30 Tage, ein Jahr oder einen beliebigen Zeitraum &nbsp; • Fahrt abspielen &nbsp; • Tag klingeln lassen, wenn du in der Nähe bist &nbsp; • Akku-Warnungen bekommen &nbsp; • CSV/GPX für die Polizei exportieren &nbsp; • App mit Passwort sperren &nbsp; • Zwischen OpenStreetMap, Google Maps &amp; Satellit wechseln &nbsp; • Zwischen Deutsch und Englisch wechseln.</p>
   </div>
 
   <div class="card">
-    <h2><span class="ic">§</span> Before you start</h2>
-    <p class="muted2"><b>Not affiliated with Google.</b> This is an independent app that uses an <b>unofficial</b>
+    <h2 lang="en"><span class="ic">§</span> Before you start</h2>
+    <h2 lang="de"><span class="ic">§</span> Bevor du loslegst</h2>
+    <p class="muted2" lang="en"><b>Not affiliated with Google.</b> This is an independent app that uses an <b>unofficial</b>
     method to read the Find network. Google may block it at any time, and this may violate Google's Terms of
     Service. It's for tracking <b>your own property</b> — never a person without their consent. Use at your own risk.</p>
+    <p class="muted2" lang="de"><b>Keine Verbindung zu Google.</b> Das ist eine unabhängige App, die das Find-Netzwerk mit einer
+    <b>inoffiziellen</b> Methode liest. Google kann das jederzeit sperren, und es kann gegen die Nutzungsbedingungen von Google
+    verstoßen. Sie ist für <b>dein eigenes Eigentum</b> gedacht – niemals für Personen ohne deren Zustimmung. Nutzung auf eigenes Risiko.</p>
     <label style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:13px;cursor:pointer">
       <input type="checkbox" id="agree" style="width:18px;height:18px;margin-top:1px;accent-color:var(--accent)">
-      <span>I will only track <b>my own property</b> (not any person without consent), and I accept the disclaimer and that I use this at my own risk.</span>
+      <span lang="en">I will only track <b>my own property</b> (not any person without consent), and I accept the disclaimer and that I use this at my own risk.</span>
+      <span lang="de">Ich orte nur <b>mein eigenes Eigentum</b> (keine Personen ohne Zustimmung), akzeptiere den Haftungsausschluss und nutze die App auf eigenes Risiko.</span>
     </label>
   </div>
 
-  <div class="cta"><button id="start" disabled style="opacity:.5">Agree &amp; start setup</button></div>
+  <div class="cta"><button id="start" disabled style="opacity:.5"><span lang="en">Agree &amp; start setup</span><span lang="de">Zustimmen &amp; Einrichtung starten</span></button></div>
 </div>
 <script>
   var cb = document.getElementById('agree'), b = document.getElementById('start');

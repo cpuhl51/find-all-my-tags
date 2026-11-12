@@ -48,16 +48,23 @@ public class PollWorker extends Worker {
             } catch (Exception ignored) {
             }
         }
+        // Akkustand: kurzer Bluetooth-Scan, nur wenn "Standort immer erlauben" gewährt ist.
+        if (BleBattery.canScanInBackground(ctx)) {
+            try {
+                BleBattery.scanAndUpdate(ctx, 8000, false);
+            } catch (Exception ignored) {
+            }
+        }
         boolean drive = DriveBackup.enabled(ctx)
                 || TagApp.prefs(ctx).getBoolean(TagApp.KEY_DRIVE_AUTO, false);
         String when = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
                 .format(new java.util.Date());
         boolean guarding = TagApp.prefs(ctx).getBoolean(TagApp.KEY_GUARD, false);
         boolean ongoing = TagApp.prefs(ctx).getBoolean(TagApp.KEY_BG_NOTIFY, true);
-        String prefix = guarding ? "🔒 Guarding" : "Active";
+        String prefix = guarding ? I18n.t("🔒 Guarding") : I18n.t("Active");
         Notify.syncStatus(ctx, added > 0
-                ? prefix + " · " + added + " new location(s)" + (drive ? " · synced" : "") + " · " + when
-                : prefix + " · last check " + when, ongoing);
+                ? prefix + " · " + added + I18n.t(" new location(s)") + (drive ? I18n.t(" · synced") : "") + " · " + when
+                : prefix + I18n.t(" · last check ") + when, ongoing);
         return Result.success();
     }
 

@@ -26,7 +26,7 @@ public class LockActivity extends Activity {
             finish();
             return;
         }
-        setTitle("Tag Tracker");
+        setTitle(I18n.t("Tag Tracker"));
 
         int pad = dp(24);
         LinearLayout root = new LinearLayout(this);
@@ -35,18 +35,18 @@ public class LockActivity extends Activity {
         root.setPadding(pad, pad, pad, pad);
 
         TextView title = new TextView(this);
-        title.setText("Enter app password");
+        title.setText(I18n.t("Enter app password"));
         title.setTextSize(20);
         title.setPadding(0, 0, 0, dp(16));
         root.addView(title);
 
         EditText input = new EditText(this);
-        input.setHint("App password");
+        input.setHint(I18n.t("App password"));
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         root.addView(input, wide());
 
         Button unlock = new Button(this);
-        unlock.setText("Unlock");
+        unlock.setText(I18n.t("Unlock"));
         unlock.setAllCaps(false);
         root.addView(unlock, wide());
 
@@ -55,12 +55,12 @@ public class LockActivity extends Activity {
         root.addView(hint);
 
         Button forgot = new Button(this);
-        forgot.setText("Forgot? Show hint");
+        forgot.setText(I18n.t("Forgot? Show hint"));
         forgot.setAllCaps(false);
         forgot.setBackground(null);
         forgot.setOnClickListener(v -> {
             String h = TagApp.appHint(this);
-            hint.setText(h.isEmpty() ? "No hint was set for this phone." : "Hint: " + h);
+            hint.setText(h.isEmpty() ? I18n.t("No hint was set for this phone.") : I18n.t("Hint: ") + h);
         });
         root.addView(forgot);
 
@@ -70,7 +70,7 @@ public class LockActivity extends Activity {
                 finish();
             } else {
                 input.setText("");
-                Toast.makeText(this, "Wrong password", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, I18n.t("Wrong password"), Toast.LENGTH_SHORT).show();
             }
         };
         unlock.setOnClickListener(v -> tryUnlock.run());

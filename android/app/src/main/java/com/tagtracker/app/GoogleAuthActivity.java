@@ -42,7 +42,7 @@ public class GoogleAuthActivity extends Activity {
         CookieManager.getInstance().setAcceptCookie(true);
 
         if (MODE_SIGN_IN.equals(mode)) {
-            setTitle("Sign in to Google");
+            setTitle(I18n.t("Sign in to Google"));
             web.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String url) {
@@ -55,8 +55,8 @@ public class GoogleAuthActivity extends Activity {
                 handler.postDelayed(this::pollCookie, 1500);
             });
         } else {
-            setTitle("Unlock Find Hub encryption");
-            Toast.makeText(this, "Sign in again to unlock encryption", Toast.LENGTH_LONG).show();
+            setTitle(I18n.t("Unlock Find Hub encryption"));
+            Toast.makeText(this, I18n.t("Sign in again to unlock encryption"), Toast.LENGTH_LONG).show();
             // Google's page calls window.mm.setVaultSharedKeys(str, vaultKeysJson) like it does
             // inside the Find Hub app. A Java interface named "mm" exists before any page script runs.
             web.addJavascriptInterface(new AuthBridge(), "mm");
@@ -72,7 +72,7 @@ public class GoogleAuthActivity extends Activity {
                     // and only load the unlock page once signed in (redirected to myaccount).
                     if (!unlockLoaded && url != null && url.startsWith("https://myaccount.google.com")) {
                         unlockLoaded = true;
-                        setTitle("Unlock Find Hub encryption");
+                        setTitle(I18n.t("Unlock Find Hub encryption"));
                         new Thread(() -> {
                             try {
                                 String u = TagApp.py(GoogleAuthActivity.this).callAttr("shared_key_url").toString();
@@ -133,10 +133,10 @@ public class GoogleAuthActivity extends Activity {
                 inFlight = false;
                 if (!done && attempts >= MAX_ATTEMPTS) {
                     runOnUiThread(() -> new AlertDialog.Builder(this)
-                            .setTitle("Couldn't finish sign-in")
-                            .setMessage("Sign-in didn't complete. To protect your account the app stopped retrying. "
+                            .setTitle(I18n.t("Couldn't finish sign-in"))
+                            .setMessage(I18n.t("Sign-in didn't complete. To protect your account the app stopped retrying. "
                                     + "You can try again, or use the more reliable Option B: import a login file "
-                                    + "made on a PC (see Setup).")
+                                    + "made on a PC (see Setup)."))
                             .setPositiveButton("OK", (d, w) -> finish())
                             .setCancelable(false).show());
                 }
@@ -149,7 +149,7 @@ public class GoogleAuthActivity extends Activity {
             String email = TagApp.py(this).callAttr("sign_in", token).toString();
             done = true;
             runOnUiThread(() -> {
-                Toast.makeText(this, "Connected " + email, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, I18n.t("Connected ") + email, Toast.LENGTH_LONG).show();
                 setResult(RESULT_OK);
                 finish();
             });
@@ -164,7 +164,7 @@ public class GoogleAuthActivity extends Activity {
 
     private void fail(Exception e) {
         new AlertDialog.Builder(this)
-                .setTitle("Something went wrong")
+                .setTitle(I18n.t("Something went wrong"))
                 .setMessage(String.valueOf(e.getMessage()))
                 .setPositiveButton("OK", (d, w) -> finish())
                 .setCancelable(false)
@@ -179,7 +179,7 @@ public class GoogleAuthActivity extends Activity {
             try {
                 TagApp.py(GoogleAuthActivity.this).callAttr("save_vault_keys", vaultKeys);
                 runOnUiThread(() -> {
-                    Toast.makeText(GoogleAuthActivity.this, "Encryption unlocked", Toast.LENGTH_LONG).show();
+                    Toast.makeText(GoogleAuthActivity.this, I18n.t("Encryption unlocked"), Toast.LENGTH_LONG).show();
                     setResult(RESULT_OK);
                     finish();
                 });

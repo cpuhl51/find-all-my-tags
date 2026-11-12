@@ -31,7 +31,7 @@ final class DriveBackup {
     static String backupNow(Context ctx) {
         SharedPreferences p = TagApp.prefs(ctx);
         String uri = p.getString(TagApp.KEY_DRIVE_URI, null);
-        if (uri == null) return "No Google Drive file chosen";
+        if (uri == null) return I18n.t("No Google Drive file chosen");
         String error = null;
         File tmp = new File(ctx.getCacheDir(), "backup.csv");
         try {
@@ -60,7 +60,7 @@ final class DriveBackup {
             // some providers don't know "wt"; "w" truncates there too
         }
         OutputStream out = ctx.getContentResolver().openOutputStream(uri, "w");
-        if (out == null) throw new IllegalStateException("Cannot write to the Drive file");
+        if (out == null) throw new IllegalStateException(I18n.t("Cannot write to the Drive file"));
         return out;
     }
 }

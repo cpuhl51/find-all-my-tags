@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Über Find All My Tags</title>
 <link rel="stylesheet" href="static/style.css">
+<script src="static/i18n.js"></script>
 <style>
   body { background: var(--bg); }
   .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; }
@@ -30,6 +31,8 @@
   .app .n { font-weight: 600; font-size: 14px; } .app .b { color: var(--muted); font-size: 13px; }
   .small { color: var(--muted); font-size: 13px; }
   .small ul { padding-left: 20px; margin: 6px 0; }
+  .langrow { text-align: center; margin-top: 8px; }
+  .langrow button { padding: 4px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
 </style>
 </head>
 <body>
@@ -38,9 +41,19 @@
     <img src="static/icon.svg" alt="">
     <h1>Find All My Tags</h1>
     <div class="ver" id="ver">Version …</div>
+    <div class="langrow"><button type="button" data-lang-switch>EN</button></div>
   </div>
 
-  <div class="card">
+  <div class="card" lang="en">
+    <p>This free app was developed by <a href="mailto:apps@puhl.ch">Christoph Puhl</a> and built with Claude.ai.
+    If you like, you can donate <a href="https://paypal.me/PuhlChristoph">here</a> for a coffee, a poppy-seed pastry or an AI subscription.
+    View this project on <a href="https://github.com/cpuhl51/find-all-my-tags">GitHub</a>.
+    More about the <a href="https://de.wikipedia.org/wiki/Christoph_Puhl">author</a>, other apps,
+    <a href="https://www.diezöno.se">comics</a> and <a href="https://puhl.ch/category/programme-und-apps/">tools</a>
+    at <a href="https://www.puhl.ch">puhl.ch</a>.</p>
+  </div>
+
+  <div class="card" lang="de">
     <p>Diese kostenlose App wurde von <a href="mailto:apps@puhl.ch">Christoph Puhl</a> entwickelt und von Claude.ai umgesetzt.
     Wenn Du möchtest, kannst Du <a href="https://paypal.me/PuhlChristoph">hier</a> gerne für einen Kaffee, ein Mohnbeugerl oder ein KI-Monatsabo spenden.
     Dieses Projekt auf <a href="https://github.com/cpuhl51/find-all-my-tags">GitHub</a> ansehen.
@@ -50,39 +63,41 @@
   </div>
 
   <div class="card">
-    <details id="hist"><summary>Versionsgeschichte</summary><div id="verlauf"></div></details>
+    <details id="hist"><summary><span lang="de">Versionsgeschichte</span><span lang="en">Version history</span></summary><div id="verlauf"></div></details>
   </div>
 
   <div class="card" id="moreCard" hidden>
-    <h2>Weitere Apps</h2>
+    <h2><span lang="de">Weitere Apps</span><span lang="en">More apps</span></h2>
     <div class="apps" id="apps"></div>
   </div>
 
   <div class="card small">
-    <h2>Datenschutz &amp; Lizenzen</h2>
-    <p><a href="datenschutz.html">Datenschutzhinweise</a></p>
-    <p>Verwendete Software und Dienste:</p>
+    <h2><span lang="de">Datenschutz &amp; Lizenzen</span><span lang="en">Privacy &amp; licenses</span></h2>
+    <p><a href="datenschutz.html"><span lang="de">Datenschutzhinweise</span><span lang="en">Privacy notice</span></a></p>
+    <p><span lang="de">Verwendete Software und Dienste:</span><span lang="en">Software and services used:</span></p>
     <ul>
-      <li><a href="https://github.com/BKrepublic/tag-tracker">tag-tracker</a> von BKrepublic – Grundlage dieser App, GPL-3.0</li>
-      <li><a href="https://github.com/leonboe1/GoogleFindMyTools">GoogleFindMyTools</a> von leonboe1 – Abfrage von Google Find Hub, GPL-3.0</li>
-      <li><a href="https://leafletjs.com">Leaflet</a> – Kartenanzeige, BSD-2-Clause</li>
-      <li>Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende; Satellitenbilder © Esri</li>
-      <li><a href="https://chaquo.com/chaquopy/">Chaquopy</a> – Python unter Android</li>
+      <li><a href="https://github.com/BKrepublic/tag-tracker">tag-tracker</a> – BKrepublic, GPL-3.0</li>
+      <li><a href="https://github.com/leonboe1/GoogleFindMyTools">GoogleFindMyTools</a> – leonboe1, GPL-3.0</li>
+      <li><a href="https://leafletjs.com">Leaflet</a> – BSD-2-Clause</li>
+      <li>© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>; © Esri</li>
+      <li><a href="https://chaquo.com/chaquopy/">Chaquopy</a> – Python / Android</li>
     </ul>
-    <p>Diese App ist ein inoffizielles Projekt und steht in keiner Verbindung zu Google. Sie selbst steht unter der GPL-3.0.</p>
+    <p lang="de">Diese App ist ein inoffizielles Projekt und steht in keiner Verbindung zu Google. Sie selbst steht unter der GPL-3.0.</p>
+    <p lang="en">This app is an unofficial project and not affiliated with Google. It is licensed under the GPL-3.0.</p>
   </div>
 </div>
 
 <script>
   const SELF_URL = "find-all-my-tags";
+  const EN = window.I18N && I18N.lang === "en";
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 
   fetch("version.json").then(r => r.json()).then(v => {
     document.getElementById("ver").textContent = "Version " + v.version;
     document.getElementById("verlauf").innerHTML = (v.verlauf || []).map(e => {
-      const d = e.datum ? new Date(e.datum + "T12:00:00").toLocaleDateString("de-AT") : "";
+      const d = e.datum ? new Date(e.datum + "T12:00:00").toLocaleDateString(EN ? "en-GB" : "de-AT") : "";
       return `<div class="rel"><b>${esc(e.version)}</b><span class="d">${esc(d)}</span>
-        <ul>${(e.aenderungen || []).map(a => `<li>${esc(a)}</li>`).join("")}</ul></div>`;
+        <ul>${((EN && e.aenderungen_en) || e.aenderungen || []).map(a => `<li>${esc(a)}</li>`).join("")}</ul></div>`;
     }).join("");
   }).catch(() => { document.getElementById("ver").textContent = ""; });
 

@@ -32,6 +32,7 @@ public class TagApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        I18n.init(this);
         new Thread(() -> {
             try {
                 py(this);

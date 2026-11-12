@@ -90,7 +90,7 @@ public class MainActivity extends Activity {
         }).start();
         maybeRestoreFromDrive();
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
-        else web.loadUrl("https://appassets.androidplatform.net/assets/web/index.html");
+        else web.loadUrl("https://appassets.androidplatform.net/assets/web/index.html?lang=" + I18n.code(this));
     }
 
     /** JS -> Python bridge. Method names match the fetch() paths the web UI would call on the server. */
@@ -105,6 +105,21 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public String lang() {
+            return I18n.code(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void setLang(String code) {
+            runOnUiThread(() -> switchLanguage(code));
+        }
+
+        @JavascriptInterface
+        public void checkBatteries() {
+            runOnUiThread(MainActivity.this::checkBatteries);
+        }
+
+        @JavascriptInterface
         public void openLicense() {
             runOnUiThread(() -> startActivity(new Intent(MainActivity.this, HelpActivity.class)
                     .putExtra(HelpActivity.EXTRA_PAGE, "info.html")));
@@ -116,7 +131,7 @@ public class MainActivity extends Activity {
                 Intent i = new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
                 i.putExtra(Intent.EXTRA_TEXT, text);
-                startActivity(Intent.createChooser(i, "Share location"));
+                startActivity(Intent.createChooser(i, I18n.t(MainActivity.this, "Share location")));
             });
         }
 
@@ -150,7 +165,7 @@ public class MainActivity extends Activity {
             new Thread(() -> {
                 try {
                     int n = TagApp.py(MainActivity.this).callAttr("locate_now", deviceId).toInt();
-                    toastUi(n > 0 ? "Location updated – saved to history" : "No new location right now");
+                    toastUi(n > 0 ? I18n.t("Location updated – saved to history") : I18n.t("No new location right now"));
                     DriveBackup.backupIfDue(MainActivity.this, n > 0);
                 } catch (Exception e) {
                     toastUi(msg(e));
@@ -163,7 +178,7 @@ public class MainActivity extends Activity {
             new Thread(() -> {
                 try {
                     TagApp.py(MainActivity.this).callAttr("play_sound", deviceId);
-                    toastUi("Ringing the tag…");
+                    toastUi(I18n.t("Ringing the tag…"));
                 } catch (Exception e) {
                     toastUi(msg(e));
                 }
@@ -198,10 +213,10 @@ public class MainActivity extends Activity {
                     share.setType(format.equals("gpx") ? "application/gpx+xml" : "text/csv");
                     share.putExtra(Intent.EXTRA_STREAM, uri);
                     share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    runOnUiThread(() -> startActivity(Intent.createChooser(share, "Save or share " + name)));
+                    runOnUiThread(() -> startActivity(Intent.createChooser(share, I18n.t("Save or share ") + name)));
                 } catch (Exception e) {
                     runOnUiThread(() -> Toast.makeText(MainActivity.this,
-                            "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                            I18n.t("Export failed: ") + e.getMessage(), Toast.LENGTH_LONG).show());
                 }
             }).start();
         }
@@ -218,7 +233,7 @@ public class MainActivity extends Activity {
             try {
                 int got = TagApp.py(this).callAttr("drive_default_restore").toInt();
                 if (got > 0) {
-                    toastUi("Restored " + got + " location(s) from your Google Drive");
+                    toastUi(I18n.t("Restored ") + got + I18n.t(" location(s) from your Google Drive"));
                     runOnUiThread(() -> { if (web != null) web.reload(); });
                 }
             } catch (Exception ignored) {
@@ -233,12 +248,14 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
-        menu.add(0, 1, 0, "Check for locations now");
-        menu.add(0, 2, 0, "Refresh");
-        menu.add(0, 3, 0, "Setup & settings");
-        menu.add(0, 6, 0, "Battery & activity");
-        menu.add(0, 5, 0, "Über diese App");
-        menu.add(0, 4, 0, "Help");
+        menu.add(0, 1, 0, I18n.t(this, "Check for locations now"));
+        menu.add(0, 7, 0, I18n.t(this, "Check tag batteries (Bluetooth)"));
+        menu.add(0, 2, 0, I18n.t(this, "Refresh"));
+        menu.add(0, 3, 0, I18n.t(this, "Setup & settings"));
+        menu.add(0, 6, 0, I18n.t(this, "Phone battery & activity"));
+        menu.add(0, 8, 0, I18n.de(this) ? "Language: English" : "Sprache: Deutsch");
+        menu.add(0, 5, 0, I18n.t(this, "About this app"));
+        menu.add(0, 4, 0, I18n.t(this, "Help"));
         return true;
     }
 
@@ -247,7 +264,7 @@ public class MainActivity extends Activity {
         switch (item.getItemId()) {
             case 1:
                 PollWorker.runNow(this);
-                Toast.makeText(this, "Checking Find Hub…", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, I18n.t(this, "Checking Find Hub…"), Toast.LENGTH_SHORT).show();
                 return true;
             case 2:
                 web.reload();
@@ -265,6 +282,12 @@ public class MainActivity extends Activity {
             case 6:
                 startActivity(new Intent(this, BatteryActivity.class));
                 return true;
+            case 7:
+                checkBatteries();
+                return true;
+            case 8:
+                switchLanguage(I18n.de(this) ? "en" : "de");
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -276,6 +299,57 @@ public class MainActivity extends Activity {
         if (TagApp.hasAppLock(this) && !TagApp.appUnlocked) {
             startActivity(new Intent(this, LockActivity.class));
         }
+        // Akkustand still im Hintergrund lesen, wenn Bluetooth-Scan schon erlaubt ist.
+        if (BleBattery.hasPermissions(this)) runBatteryScan(false);
+    }
+
+    private static final int REQ_BLE = 21;
+
+    /** Menüpunkt "Akkustand prüfen": fragt bei Bedarf nach der Berechtigung und scannt. */
+    void checkBatteries() {
+        if (!BleBattery.hasPermissions(this)) {
+            Toast.makeText(this, I18n.t(this, "Bluetooth access is needed to read the batteries of tags near you."),
+                    Toast.LENGTH_LONG).show();
+            requestPermissions(BleBattery.neededPermissions(), REQ_BLE);
+            return;
+        }
+        runBatteryScan(true);
+    }
+
+    private void runBatteryScan(boolean userAsked) {
+        if (userAsked) Toast.makeText(this, I18n.t(this, "Searching for tags nearby (10 s)…"), Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            int known = 0;
+            try {
+                known = TagApp.py(this).callAttr("ble_known").toInt();
+            } catch (Exception ignored) {
+            }
+            int seen = BleBattery.scanAndUpdate(this, userAsked ? 10000 : 6000, userAsked);
+            final int k = known;
+            runOnUiThread(() -> {
+                if (seen > 0) web.evaluateJavascript("window.reloadDevices && window.reloadDevices()", null);
+                if (!userAsked) return;
+                String msg;
+                if (seen < 0) msg = I18n.t(this, "Bluetooth is off or not allowed.");
+                else if (k == 0) msg = I18n.t(this, "Run \"Check for locations now\" once first, then try again.");
+                else if (seen == 0) msg = I18n.t(this, "No tag in Bluetooth range right now.");
+                else msg = I18n.t(this, "Battery status updated.");
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+            });
+        }).start();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(code, perms, results);
+        if (code == REQ_BLE && BleBattery.hasPermissions(this)) runBatteryScan(true);
+    }
+
+    /** Sprache umstellen und den Bildschirm neu laden. */
+    void switchLanguage(String code) {
+        I18n.set(this, code);
+        invalidateOptionsMenu();
+        web.loadUrl("https://appassets.androidplatform.net/assets/web/index.html?lang=" + I18n.code(this));
     }
 
     @Override

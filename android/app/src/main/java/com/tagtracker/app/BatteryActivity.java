@@ -22,7 +22,7 @@ public class BatteryActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        setTitle("Battery & activity");
+        setTitle(I18n.t("Battery & activity"));
         ScrollView sc = new ScrollView(this);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -46,12 +46,12 @@ public class BatteryActivity extends Activity {
 
     private void render(String json) {
         root.removeAllViews();
-        title("Very low battery use");
-        note("Tag Tracker is built to sip battery:\n"
-                + "• It uses NO GPS and NO location permission (positions come from Google's network).\n"
-                + "• It wakes only briefly every " + TagApp.intervalMinutes(this) + " minutes, then sleeps.\n"
+        title(I18n.t("Very low battery use"));
+        note(I18n.t("Tag Tracker is built to sip battery:\n"
+                + "• It uses NO GPS (positions come from Google's network). Location access is only used for the optional Bluetooth battery check.\n"
+                + "• It wakes only briefly every ") + TagApp.intervalMinutes(this) + I18n.t(" minutes, then sleeps.\n"
                 + "• It closes its network connection between checks.\n"
-                + "• Android (WorkManager) batches the checks at efficient moments.");
+                + "• Android (WorkManager) batches the checks at efficient moments."));
 
         int checksToday = 0, avgMs = 0;
         double activeSec = 0;
@@ -66,16 +66,16 @@ public class BatteryActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        heading("Today");
-        info("Checks today: " + checksToday);
-        info("Total active time today: ~" + activeSec + " seconds  (the rest of the day it's asleep)");
-        info("Average per check: ~" + (avgMs / 1000.0) + " s");
+        heading(I18n.t("Today"));
+        info(I18n.t("Checks today: ") + checksToday);
+        info(I18n.t("Total active time today: ~") + activeSec + I18n.t(" seconds  (the rest of the day it's asleep)"));
+        info(I18n.t("Average per check: ~") + (avgMs / 1000.0) + " s");
 
-        button("Open Android battery settings for this app", v -> openBatterySettings());
+        button(I18n.t("Open Android battery settings for this app"), v -> openBatterySettings());
 
-        heading("Recent checks");
+        heading(I18n.t("Recent checks"));
         if (checks.length() == 0) {
-            note("No checks logged yet. They appear here after the app runs in the background.");
+            note(I18n.t("No checks logged yet. They appear here after the app runs in the background."));
         }
         for (int i = 0; i < checks.length(); i++) {
             JSONObject c = checks.optJSONObject(i);
@@ -83,8 +83,8 @@ public class BatteryActivity extends Activity {
             long ts = c.optLong("ts") * 1000L;
             String when = DateFormat.format("MMM d, h:mm a", ts).toString();
             String line = when + "  ·  " + (c.optInt("ms") / 1000.0) + "s"
-                    + (c.optInt("added") > 0 ? "  ·  +" + c.optInt("added") + " new" : "")
-                    + (c.optBoolean("ok", true) ? "" : "  ·  (failed)");
+                    + (c.optInt("added") > 0 ? "  ·  +" + c.optInt("added") + I18n.t(" new") : "")
+                    + (c.optBoolean("ok", true) ? "" : I18n.t("  ·  (failed)"));
             info(line);
         }
     }

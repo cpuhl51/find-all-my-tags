@@ -11,6 +11,14 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- For the "synced" status notification (Android 13+); optional, app works without it. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Akkustand der Tags über Bluetooth lesen (Find Hub Funkrahmen) -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
     <application
         android:allowBackup="false"

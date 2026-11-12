@@ -27,7 +27,7 @@ public class HelpActivity extends Activity {
         super.onCreate(savedInstanceState);
         String page = getIntent().getStringExtra(EXTRA_PAGE);
         if (page == null || !page.matches("[a-z]+\\.html")) page = "help.html";
-        setTitle("info.html".equals(page) ? "Über diese App" : "How it works");
+        setTitle("info.html".equals(page) ? I18n.t("About this app") : I18n.t("How it works"));
         onboard = getIntent().getBooleanExtra(EXTRA_ONBOARD, false);
 
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
@@ -53,7 +53,7 @@ public class HelpActivity extends Activity {
                 return true;
             }
         });
-        web.loadUrl("https://appassets.androidplatform.net/assets/web/" + page);
+        web.loadUrl("https://appassets.androidplatform.net/assets/web/" + page + "?lang=" + I18n.code(this));
     }
 
     class Bridge {

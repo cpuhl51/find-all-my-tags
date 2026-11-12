@@ -1,6 +1,22 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "verlauf": [
+    {
+      "version": "1.1.0",
+      "datum": "2026-11-12",
+      "aenderungen": [
+        "Alle Tags gleichzeitig auf der Karte, jeder in eigener Farbe mit Namen",
+        "Übersicht „Alle Tags“: wo und wann jeder Tag zuletzt gesehen wurde",
+        "Akkustand der Tags per Bluetooth (normal / schwach / kritisch), mit Meldung bei schwachem Akku",
+        "App komplett auf Deutsch und Englisch, mit Umschalter"
+      ],
+      "aenderungen_en": [
+        "All tags on the map at once, each in its own colour with its name",
+        "“All tags” overview: where and when each tag was last seen",
+        "Tag battery status via Bluetooth (normal / low / critical), with a notification when it gets low",
+        "Whole app in German and English, with a language switch"
+      ]
+    },
     {
       "version": "1.0.0",
       "datum": "2026-11-12",
@@ -10,6 +26,13 @@
         "Voller Standortverlauf, Export und Alarme ohne Lizenzschlüssel",
         "Neuer Name „Find All My Tags“, läuft neben dem Original",
         "Neue Seite „Über diese App“ mit Versionsgeschichte"
+      ],
+      "aenderungen_en": [
+        "First own version, based on the open-source project tag-tracker",
+        "All tags usable, no one-tracker limit",
+        "Full location history, export and alerts without a licence key",
+        "New name “Find All My Tags”, installs next to the original",
+        "New “About this app” page with version history"
       ]
     }
   ]

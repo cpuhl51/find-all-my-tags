@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Datenschutz – Find All My Tags</title>
 <link rel="stylesheet" href="static/style.css">
+<script src="static/i18n.js"></script>
 <style>
   body { background: var(--bg); }
   .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; line-height: 1.55; }
@@ -14,17 +15,19 @@
 </head>
 <body>
 <div class="wrap">
+<div lang="de">
   <h1>Datenschutzhinweise</h1>
   <p>Kurz gesagt: Deine Daten bleiben bei Dir. Der Entwickler bekommt nichts davon zu sehen.</p>
 
   <h2>Was die App speichert</h2>
-  <p>Die Standorte und Namen Deiner Tags sowie Deine Google-Anmeldung werden nur auf Deinem Handy gespeichert.</p>
+  <p>Die Standorte, Namen und der Akkustand Deiner Tags sowie Deine Google-Anmeldung werden nur auf Deinem Handy gespeichert.</p>
 
   <h2>Wohin Daten gehen</h2>
   <ul>
     <li><b>Google:</b> Die App fragt mit Deinem Google-Konto die Standorte Deiner Tags bei Google Find Hub ab. Dafür nutzt sie eine inoffizielle, von Google nicht dokumentierte Schnittstelle.</li>
+    <li><b>Bluetooth (optional):</b> Für den Akkustand hört die App auf die Bluetooth-Signale Deiner Tags in der Nähe des Handys. Android verlangt dafür die Standort-Berechtigung. Davon wird nichts weitergeschickt.</li>
     <li><b>Google Drive (optional):</b> Wenn Du das Backup einschaltest, landet der Verlauf in Deinem eigenen Google Drive.</li>
-    <li><b>Kartendienste:</b> Für die Karte werden Kartenbilder von OpenStreetMap bzw. Esri geladen, für Adressen wird OpenStreetMap Nominatim abgefragt. Diese Dienste sehen dabei, welchen Kartenausschnitt Du ansiehst.</li>
+    <li><b>Kartendienste:</b> Für die Karte werden Kartenbilder von OpenStreetMap bzw. Esri geladen, wenn Du es einschaltest, werden Adressen bei OpenStreetMap Nominatim abgefragt. Diese Dienste sehen dabei, welchen Kartenausschnitt Du ansiehst.</li>
     <li><b>Eigener Server (optional):</b> Nur wenn Du selbst einen Server einträgst, schickt die App die Standorte dorthin. Dafür bist dann Du verantwortlich.</li>
   </ul>
 
@@ -36,6 +39,32 @@
 
   <h2>Kontakt</h2>
   <p>Christoph Puhl, <a href="mailto:apps@puhl.ch">apps@puhl.ch</a></p>
+</div>
+<div lang="en">
+  <h1>Privacy notice</h1>
+  <p>In short: your data stays with you. The developer never sees any of it.</p>
+
+  <h2>What the app stores</h2>
+  <p>Your tags' locations, names and battery status, plus your Google sign-in, are stored only on your phone.</p>
+
+  <h2>Where data goes</h2>
+  <ul>
+    <li><b>Google:</b> With your Google account, the app asks Google Find Hub for your tags' locations. It uses an unofficial interface that Google does not document.</li>
+    <li><b>Bluetooth (optional):</b> To read the battery level, the app listens for your tags' Bluetooth signals near your phone. Android requires location permission for this. Nothing from this is sent anywhere.</li>
+    <li><b>Google Drive (optional):</b> If you turn on backup, your history is saved in your own Google Drive.</li>
+    <li><b>Map services:</b> Map images are loaded from OpenStreetMap or Esri; if you enable it, addresses are looked up with OpenStreetMap Nominatim. These services see which map area you are viewing.</li>
+    <li><b>Your own server (optional):</b> Only if you enter a server yourself will the app send locations there. You are then responsible for it.</li>
+  </ul>
+
+  <h2>What does not happen</h2>
+  <p>No ads, no tracking, no analytics, no data sent to the developer.</p>
+
+  <h2>Deleting</h2>
+  <p>Uninstalling the app removes all data from the phone. Delete a Drive backup in your Google Drive.</p>
+
+  <h2>Contact</h2>
+  <p>Christoph Puhl, <a href="mailto:apps@puhl.ch">apps@puhl.ch</a></p>
+</div>
 </div>
 </body>
 </html>

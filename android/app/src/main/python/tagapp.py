@@ -358,10 +358,14 @@ def devices_json(interval_minutes: int, backup_enabled: bool, parked: bool = Fal
     s = _load_status()
     info = license_state(phone_id)
     devices = db.get_devices()
-    if not info["licensed"]:
-        # Free tier: only the first tag is usable; mark the rest as locked (Pro).
-        for i, d in enumerate(devices):
-            d["locked"] = i >= lic.FREE_TAGS
+    try:
+        from server import battery
+        bstate = battery.state()
+    except Exception:
+        bstate = {}
+    for d in devices:
+        b = bstate.get(d["id"])
+        d["battery"] = b if b else None
     return json.dumps({
         "devices": devices,
         "license": info,
@@ -417,3 +421,23 @@ def import_csv(path: str) -> int:
 def demo():
     from server import manage
     manage.demo()
+
+
+# ---------- Akkustand per Bluetooth ----------
+
+def ble_ingest(frames_json: str) -> str:
+    """frames_json = JSON-Liste der beim Scan gesehenen 0xFEAA-Service-Daten (Hex).
+    Gibt JSON-Liste der Tags zurück, deren Akku neu auf niedrig/kritisch gefallen ist."""
+    from server import battery, db
+    alerts = battery.ingest(json.loads(frames_json or "[]"))
+    names = {d["id"]: d["name"] for d in db.get_devices()}
+    for a in alerts:
+        a["name"] = names.get(a["id"], "Tag")
+    _save_status(ble_last_scan=int(time.time()))
+    return json.dumps(alerts)
+
+
+def ble_known() -> int:
+    """Wie viele Tags wir per Bluetooth erkennen können (nach dem ersten Standortabruf)."""
+    from server import battery
+    return battery.known_count()
