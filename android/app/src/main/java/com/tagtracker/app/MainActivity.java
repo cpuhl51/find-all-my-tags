@@ -106,7 +106,8 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void openLicense() {
-            runOnUiThread(() -> startActivity(new Intent(MainActivity.this, LicenseActivity.class)));
+            runOnUiThread(() -> startActivity(new Intent(MainActivity.this, HelpActivity.class)
+                    .putExtra(HelpActivity.EXTRA_PAGE, "info.html")));
         }
 
         @JavascriptInterface
@@ -236,7 +237,7 @@ public class MainActivity extends Activity {
         menu.add(0, 2, 0, "Refresh");
         menu.add(0, 3, 0, "Setup & settings");
         menu.add(0, 6, 0, "Battery & activity");
-        menu.add(0, 5, 0, "Tag Tracker Pro");
+        menu.add(0, 5, 0, "Über diese App");
         menu.add(0, 4, 0, "Help");
         return true;
     }
@@ -258,7 +259,8 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(this, HelpActivity.class));
                 return true;
             case 5:
-                startActivity(new Intent(this, LicenseActivity.class));
+                startActivity(new Intent(this, HelpActivity.class)
+                        .putExtra(HelpActivity.EXTRA_PAGE, "info.html"));
                 return true;
             case 6:
                 startActivity(new Intent(this, BatteryActivity.class));

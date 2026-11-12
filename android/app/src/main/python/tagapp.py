@@ -331,17 +331,8 @@ def set_phone_id(phone_id: str):
 
 
 def license_state(phone_id: str = "") -> dict:
-    from server import license as lic
-    s = _load_status()
-    if not phone_id:
-        phone_id = s.get("phone_id", "")
-    key = s.get("license_key")
-    if not key:
-        return {"licensed": False, "tags": lic.FREE_TAGS, "free_hours": lic.FREE_HISTORY_HOURS,
-                "reason": "", "expiry": 0}
-    r = lic.verify(key, phone_id, s.get("license_activated", 0))
-    r["free_hours"] = lic.FREE_HISTORY_HOURS
-    return r
+    # Find All My Tags: keine Lizenzsperre. Alle Tags, voller Verlauf, alle Funktionen frei.
+    return {"licensed": True, "tags": 10 ** 6, "free_hours": 0, "reason": "", "expiry": 0}
 
 
 def set_license(key: str, phone_id: str) -> str:

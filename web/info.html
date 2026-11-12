@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Über Find All My Tags</title>
+<link rel="stylesheet" href="static/style.css">
+<style>
+  body { background: var(--bg); }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 48px; }
+  .hero { text-align: center; padding: 20px 16px 4px; }
+  .hero img { width: 56px; height: 56px; border-radius: 16px; box-shadow: var(--shadow-lg); }
+  .hero h1 { font-size: 22px; letter-spacing: -.02em; margin: 10px 0 2px; }
+  .hero .ver { color: var(--muted); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-top: 14px; box-shadow: var(--shadow-sm); }
+  .card h2 { font-size: 15px; margin: 0 0 8px; }
+  .card p { margin: 6px 0; line-height: 1.5; }
+  a { color: var(--accent); }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "▸"; float: right; color: var(--muted); }
+  details[open] summary::after { content: "▾"; }
+  .rel { border-top: 1px solid var(--border); padding: 10px 0 4px; }
+  .rel:first-of-type { border-top: none; }
+  .rel b { font-size: 14px; } .rel .d { color: var(--muted); font-size: 13px; margin-left: 6px; }
+  .rel ul { margin: 6px 0 0; padding-left: 20px; } .rel li { margin: 2px 0; font-size: 14px; }
+  .apps { display: grid; gap: 8px; }
+  .app { display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--text); padding: 8px; border-radius: 12px; border: 1px solid var(--border); }
+  .app img { width: 40px; height: 40px; border-radius: 10px; flex: none; background: var(--chip); }
+  .app .n { font-weight: 600; font-size: 14px; } .app .b { color: var(--muted); font-size: 13px; }
+  .small { color: var(--muted); font-size: 13px; }
+  .small ul { padding-left: 20px; margin: 6px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <img src="static/icon.svg" alt="">
+    <h1>Find All My Tags</h1>
+    <div class="ver" id="ver">Version …</div>
+  </div>
+
+  <div class="card">
+    <p>Diese kostenlose App wurde von <a href="mailto:apps@puhl.ch">Christoph Puhl</a> entwickelt und von Claude.ai umgesetzt.
+    Wenn Du möchtest, kannst Du <a href="https://paypal.me/PuhlChristoph">hier</a> gerne für einen Kaffee, ein Mohnbeugerl oder ein KI-Monatsabo spenden.
+    Dieses Projekt auf <a href="https://github.com/cpuhl51/find-all-my-tags">GitHub</a> ansehen.
+    Mehr über den <a href="https://de.wikipedia.org/wiki/Christoph_Puhl">Autor</a>, weitere Apps,
+    <a href="https://www.diezöno.se">Comics</a> und <a href="https://puhl.ch/category/programme-und-apps/">Tools</a>
+    findest Du auf <a href="https://www.puhl.ch">puhl.ch</a>.</p>
+  </div>
+
+  <div class="card">
+    <details id="hist"><summary>Versionsgeschichte</summary><div id="verlauf"></div></details>
+  </div>
+
+  <div class="card" id="moreCard" hidden>
+    <h2>Weitere Apps</h2>
+    <div class="apps" id="apps"></div>
+  </div>
+
+  <div class="card small">
+    <h2>Datenschutz &amp; Lizenzen</h2>
+    <p><a href="datenschutz.html">Datenschutzhinweise</a></p>
+    <p>Verwendete Software und Dienste:</p>
+    <ul>
+      <li><a href="https://github.com/BKrepublic/tag-tracker">tag-tracker</a> von BKrepublic – Grundlage dieser App, GPL-3.0</li>
+      <li><a href="https://github.com/leonboe1/GoogleFindMyTools">GoogleFindMyTools</a> von leonboe1 – Abfrage von Google Find Hub, GPL-3.0</li>
+      <li><a href="https://leafletjs.com">Leaflet</a> – Kartenanzeige, BSD-2-Clause</li>
+      <li>Kartendaten © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende; Satellitenbilder © Esri</li>
+      <li><a href="https://chaquo.com/chaquopy/">Chaquopy</a> – Python unter Android</li>
+    </ul>
+    <p>Diese App ist ein inoffizielles Projekt und steht in keiner Verbindung zu Google. Sie selbst steht unter der GPL-3.0.</p>
+  </div>
+</div>
+
+<script>
+  const SELF_URL = "find-all-my-tags";
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+  fetch("version.json").then(r => r.json()).then(v => {
+    document.getElementById("ver").textContent = "Version " + v.version;
+    document.getElementById("verlauf").innerHTML = (v.verlauf || []).map(e => {
+      const d = e.datum ? new Date(e.datum + "T12:00:00").toLocaleDateString("de-AT") : "";
+      return `<div class="rel"><b>${esc(e.version)}</b><span class="d">${esc(d)}</span>
+        <ul>${(e.aenderungen || []).map(a => `<li>${esc(a)}</li>`).join("")}</ul></div>`;
+    }).join("");
+  }).catch(() => { document.getElementById("ver").textContent = ""; });
+
+  // Weitere Apps: ohne Netz bleibt der Abschnitt still ausgeblendet.
+  fetch("https://apps.puhl.ch/apps.json", { cache: "no-cache" }).then(r => r.json()).then(list => {
+    const others = (Array.isArray(list) ? list : []).filter(a =>
+      a && a.name && !(a.url || "").includes(SELF_URL) && !/find all my tags/i.test(a.name));
+    if (!others.length) return;
+    document.getElementById("apps").innerHTML = others.map(a => {
+      const href = a.playstore || a.url || "#";
+      const icon = a.icon ? `<img src="${esc(a.icon)}" alt="">` : `<img alt="">`;
+      return `<a class="app" href="${esc(href)}">${icon}<div><div class="n">${esc(a.name)}</div>
+        <div class="b">${esc(a.beschreibung || "")}</div></div></a>`;
+    }).join("");
+    document.getElementById("moreCard").hidden = false;
+  }).catch(() => {});
+</script>
+</body>
+</html>

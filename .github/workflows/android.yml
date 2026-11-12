@@ -3,7 +3,7 @@ name: Android APK
 on:
   push:
     branches: [main]
-    paths: ["android/**", ".github/workflows/android.yml"]
+    paths: ["android/**", "web/**", "server/**", ".github/workflows/android.yml"]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -55,15 +55,15 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           gradle assembleRelease --no-daemon
-          cp app/build/outputs/apk/release/app-release.apk TagTracker.apk
+          cp app/build/outputs/apk/release/app-release.apk FindAllMyTags.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TagTracker-apk
-          path: android/TagTracker.apk
+          name: FindAllMyTags-apk
+          path: android/FindAllMyTags.apk
 
       - name: Publish release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          files: android/TagTracker.apk
+          files: android/FindAllMyTags.apk

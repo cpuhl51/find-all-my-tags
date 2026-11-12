@@ -16,6 +16,8 @@ import androidx.webkit.WebViewAssetLoader;
 public class HelpActivity extends Activity {
     /** Set true when opened as first-run onboarding, so "Got it" goes to setup. */
     static final String EXTRA_ONBOARD = "onboard";
+    /** Optional: another bundled page to show instead of help.html (e.g. info.html). */
+    static final String EXTRA_PAGE = "page";
 
     private boolean onboard;
 
@@ -23,7 +25,9 @@ public class HelpActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("How it works");
+        String page = getIntent().getStringExtra(EXTRA_PAGE);
+        if (page == null || !page.matches("[a-z]+\\.html")) page = "help.html";
+        setTitle("info.html".equals(page) ? "Über diese App" : "How it works");
         onboard = getIntent().getBooleanExtra(EXTRA_ONBOARD, false);
 
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
@@ -49,7 +53,7 @@ public class HelpActivity extends Activity {
                 return true;
             }
         });
-        web.loadUrl("https://appassets.androidplatform.net/assets/web/help.html");
+        web.loadUrl("https://appassets.androidplatform.net/assets/web/" + page);
     }
 
     class Bridge {

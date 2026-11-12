@@ -8,6 +8,8 @@ def repoRoot = file("../..")
 def gfmtDir = new File(repoRoot, "vendor/GoogleFindMyTools")
 def genPy = layout.buildDirectory.dir("sharedCode/serverpy").get().asFile
 def genWeb = layout.buildDirectory.dir("sharedCode/webassets").get().asFile
+// App-Version kommt aus web/version.json (eine Quelle für App und Info-Seite).
+def appVersion = new groovy.json.JsonSlurper().parse(new File(repoRoot, "web/version.json")).version
 // Must exist at configuration time because Chaquopy / assets register them as source dirs.
 genPy.mkdirs()
 genWeb.mkdirs()
@@ -17,11 +19,11 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.tagtracker.app"
+        applicationId "ch.puhl.findallmytags"
         minSdk 24
         targetSdk 35
         versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
-        versionName System.getenv("VERSION_NAME") ?: "2.0"
+        versionName appVersion
         ndk { abiFilters "arm64-v8a" }  // real phones only; drops x86_64 emulator libs (~half the size)
     }
 

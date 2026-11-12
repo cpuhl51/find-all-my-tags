@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "verlauf": [
+    {
+      "version": "1.0.0",
+      "datum": "2026-11-12",
+      "aenderungen": [
+        "Erste eigene Version, aufbauend auf dem Open-Source-Projekt tag-tracker",
+        "Alle Tags frei nutzbar, ohne Begrenzung auf einen Tracker",
+        "Voller Standortverlauf, Export und Alarme ohne Lizenzschlüssel",
+        "Neuer Name „Find All My Tags“, läuft neben dem Original",
+        "Neue Seite „Über diese App“ mit Versionsgeschichte"
+      ]
+    }
+  ]
+}
