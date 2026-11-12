@@ -37,6 +37,7 @@ if (!empty($body['devices']) && is_array($body['devices'])) {
             'battery' => (isset($d['battery']) && is_array($d['battery'])) ? [
                 'level' => (int)($d['battery']['level'] ?? 0),
                 'ts' => (int)($d['battery']['ts'] ?? 0),
+                'seen_ts' => (int)($d['battery']['seen_ts'] ?? 0),
             ] : null,
         ];
     }

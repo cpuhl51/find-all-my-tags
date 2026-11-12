@@ -156,6 +156,13 @@
     '{n} hours': '{n} Stunden',
     'Last update from the app {ago}': 'Letzte Aktualisierung von der App {ago}',
     'No data from the app yet.': 'Noch keine Daten von der App.',
+    'nearby': 'in der Nähe',
+    'Nearby – just recognised by Bluetooth ({ago})': 'In der Nähe – gerade per Bluetooth erkannt ({ago})',
+    'Last location from Google: {t}': 'Letzter Standort von Google: {t}',
+    'Google Drive backup: off': 'Google-Drive-Sicherung: aus',
+    'Google Drive backup: pending, will retry (locations are safe on the phone)': 'Google-Drive-Sicherung: ausstehend, wird wiederholt (Standorte sind am Handy sicher)',
+    'Google Drive backup: saved {ago}': 'Google-Drive-Sicherung: gesichert {ago}',
+    'Google Drive backup: first sync running…': 'Google-Drive-Sicherung: erste Sicherung läuft …',
     // Sprache
     'Language': 'Sprache',
   };

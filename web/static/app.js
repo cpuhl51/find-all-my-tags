@@ -246,18 +246,23 @@
   }
   map.on('zoomend', () => renderMarkers());
   map.on('resize', () => renderMarkers());
-  const isStale = (d) => staleHours > 0 && d.last_ts != null && Date.now() / 1000 - d.last_ts > staleHours * 3600;
+  // Zuletzt gesehen = neuester Wert aus Google-Standort und eigenem Bluetooth-Scan der App
+  const seenTs = (d) => Math.max(d.last_ts || 0, (d.battery && d.battery.seen_ts) || 0) || null;
+  const NEAR_SEC = 15 * 60;
+  const isNear = (d) => !!(d.battery && d.battery.seen_ts && Date.now() / 1000 - d.battery.seen_ts < NEAR_SEC);
+  const isStale = (d) => staleHours > 0 && seenTs(d) != null && Date.now() / 1000 - seenTs(d) > staleHours * 3600;
 
   function renderOverview() {
     const el = $('latest');
     if (!devices.length) { el.innerHTML = `<span class="muted">${esc(t('No tags yet – waiting for first check'))}</span>`; return; }
-    const list = devices.slice().sort((a, b) => (b.last_ts || 0) - (a.last_ts || 0));
+    const list = devices.slice().sort((a, b) => (seenTs(b) || 0) - (seenTs(a) || 0));
     el.innerHTML = `<div class="ov-head"><b>${esc(t('All tags'))} (${devices.length})</b></div>`
       + '<div class="ov">' + list.map((d) => {
-        const seen = d.last_ts != null ? ago(d.last_ts) : t('never');
-        const st = isStale(d) || d.last_ts == null;
+        const near = isNear(d);
+        const seen = near ? '📶 ' + t('nearby') : (seenTs(d) != null ? ago(seenTs(d)) : t('never'));
+        const st = !near && (isStale(d) || seenTs(d) == null);
         return `<button type="button" class="ov-row${d.id === focusId ? ' on' : ''}${st ? ' stale' : ''}" data-id="${esc(d.id)}">${iconSvg(d, 20)}`
-          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen">${st ? '⚠ ' : ''}${esc(seen)}</span></span>`
+          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen${near ? ' near' : ''}">${st ? '⚠ ' : ''}${esc(seen)}</span></span>`
           + `<span class="ov-batt">${battDot(d)}</span></button>`;
       }).join('') + '</div>';
     el.querySelectorAll('.ov-row').forEach((r) => r.addEventListener('click', () => select(r.dataset.id)));
@@ -288,20 +293,20 @@
     $('historyBox').hidden = !(d && historyOn);
     if (!d) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    const seen = d.last_ts != null
-      ? `${esc(t('Last seen at {t}', { t: fmt(d.last_ts) }))} <span class="muted">(${ago(d.last_ts)})</span>`
-      : `<span class="muted">${esc(t('No locations stored yet.'))}</span>`;
+    const seen = (isNear(d) ? `<div class="near">📶 ${esc(t('Nearby – just recognised by Bluetooth ({ago})', { ago: ago(d.battery.seen_ts) }))}</div>` : '')
+      + (d.last_ts != null
+        ? `<div>${esc(t('Last location from Google: {t}', { t: fmt(d.last_ts) }))} <span class="muted">(${ago(d.last_ts)})</span></div>`
+        : `<div class="muted">${esc(t('No locations stored yet.'))}</div>`);
     el.innerHTML = `<div class="d-head">${iconSvg(d, 22)}<b>${esc(d.name)}</b><button type="button" class="icon" id="dClose">✕</button></div>`
-      + `<div>${seen}</div>`
+      + seen
       + (d.last_lat != null ? `<div id="addr" class="muted">📍 ${d.last_lat.toFixed(5)}, ${d.last_lon.toFixed(5)}</div>` : '')
       + (isStale(d) ? `<div class="stale-note">⚠ ${esc(t('Not seen for over {n} – battery empty or out of range?', { n: staleText() }))}</div>` : '')
       + battLine(d)
       + (d.last_error ? `<div class="error small">${esc(d.last_error)}</div>` : '')
-      + `<div class="acts${readOnly ? ' ro' : ''}">`
-      + `<button type="button" id="aHist" class="${historyOn ? 'on' : ''}">🕓 ${esc(t('History'))}</button>`
-      + (readOnly ? '' : `<button type="button" id="aLocate">📍 ${esc(t('Locate'))}</button>`
-      + `<button type="button" id="aRing">🔔 ${esc(t('Ring'))}</button>`)
-      + `<button type="button" id="aShare">↗ ${esc(t('Share'))}</button>`
+      + `<div class="acts pics${readOnly ? ' ro' : ''}">`
+      + picBtn('aHist', 'verlauf', t('History'), historyOn)
+      + (readOnly ? '' : picBtn('aLocate', 'orten', t('Locate')) + picBtn('aRing', 'klingeln', t('Ring')))
+      + picBtn('aShare', 'teilen', t('Share'))
       + `</div>`;
     $('dClose').onclick = () => select(d.id);
     $('aHist').onclick = () => {
@@ -320,6 +325,12 @@
     if (e.target.closest && e.target.closest('.batt-check') && NATIVE && NATIVE.checkBatteries) NATIVE.checkBatteries();
   });
 
+  // Zönose-Knopf: helles und dunkles Bild, CSS zeigt das passende
+  function picBtn(id, img, label, on) {
+    return `<button type="button" id="${id}" class="${on ? 'on' : ''}" title="${esc(label)}" aria-label="${esc(label)}">`
+      + `<img class="lt" src="static/img/btn-${img}-light.png" alt=""><img class="dk" src="static/img/btn-${img}-dark.png" alt=""></button>`;
+  }
+
   function staleText() {
     return staleHours % 24 === 0 ? t('{n} days', { n: staleHours / 24 }) : t('{n} hours', { n: staleHours });
   }
@@ -327,20 +338,11 @@
   function renderSync(b) {
     const el = $('sync');
     if (!el) return;
-    el.classList.remove('ok', 'busy', 'err', 'off');
-    if (!b || !b.enabled) {
-      el.classList.add('off'); el.textContent = t('Drive off');
-      el.title = t('Google Drive sync is off. Turn it on in setup.');
-    } else if (b.last_error) {
-      el.classList.add('busy'); el.textContent = t('Saved · sync pending');
-      el.title = t('Your locations ARE saved on the phone. Drive sync will retry automatically.') + ' (' + b.last_error + ')';
-    } else if (b.last_run) {
-      el.classList.add('ok'); el.textContent = t('Synced');
-      el.title = t('Backed up to Google Drive {ago}', { ago: ago(b.last_run) }) + (b.mode ? ` (${b.mode})` : '');
-    } else {
-      el.classList.add('busy'); el.textContent = t('Syncing…');
-      el.title = t('First Drive sync in progress…');
-    }
+    if (!b) { el.textContent = ''; return; }
+    if (!b.enabled) el.textContent = '☁ ' + t('Google Drive backup: off');
+    else if (b.last_error) el.textContent = '☁ ' + t('Google Drive backup: pending, will retry (locations are safe on the phone)');
+    else if (b.last_run) el.textContent = '☁ ' + t('Google Drive backup: saved {ago}', { ago: ago(b.last_run) });
+    else el.textContent = '☁ ' + t('Google Drive backup: first sync running…');
   }
 
   // ---------- Verlauf (nur für den gewählten Tag, auf Wunsch) ----------
@@ -466,9 +468,9 @@
 
   async function locateNow(d) {
     const btn = $('aLocate');
-    if (btn) { btn.disabled = true; btn.textContent = t('📍 Locating…'); }
+    if (btn) btn.disabled = true;
     $('pollStatus').textContent = t('Asking the tag for its current location…');
-    const done = () => { const b = $('aLocate'); if (b) { b.disabled = false; b.textContent = '📍 ' + t('Locate'); } };
+    const done = () => { const b = $('aLocate'); if (b) b.disabled = false; };
     try { await data.locate(d.id); } catch (e) { $('pollStatus').textContent = e.message; done(); return; }
     if (NATIVE) {
       let n = 0;

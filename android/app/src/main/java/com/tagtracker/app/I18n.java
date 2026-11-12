@@ -483,6 +483,10 @@ final class I18n {
               "✓ Verbunden – die Standorte werden nach jeder Abfrage hochgeladen.");
         m.put("✓ Uploading to: ",
               "✓ Lädt hoch nach: ");
+        m.put("Bluetooth signals found, but none could be matched to your tags yet.",
+              "Bluetooth-Signale gefunden, aber noch keinem deiner Tags zugeordnet.");
+        m.put(" tag(s) nearby recognised – battery updated.",
+              " Tag(s) in der Nähe erkannt – Akkustand aktualisiert.");
         return m;
     }
 }

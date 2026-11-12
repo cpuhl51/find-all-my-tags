@@ -67,10 +67,10 @@ final class Notify {
                 : new Notification.Builder(ctx).setPriority(Notification.PRIORITY_HIGH);
         Notification n = b.setContentTitle("⚠ " + name + I18n.t(" is moving!"))
                 .setContentText(I18n.t("Moved ") + movedM + I18n.t(" m. Tap to see the map."))
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notify)
                 .setContentIntent(open)
-                .addAction(new Notification.Action.Builder(R.drawable.ic_launcher, I18n.t("Ring tag"), ringPi).build())
-                .addAction(new Notification.Action.Builder(R.drawable.ic_launcher, I18n.t("Open in Maps"), mapsPi).build())
+                .addAction(new Notification.Action.Builder(R.drawable.ic_notify, I18n.t("Ring tag"), ringPi).build())
+                .addAction(new Notification.Action.Builder(R.drawable.ic_notify, I18n.t("Open in Maps"), mapsPi).build())
                 .setAutoCancel(true)
                 .build();
         try {
@@ -89,7 +89,7 @@ final class Notify {
                 : new Notification.Builder(ctx);
         Notification n = b.setContentTitle(I18n.t("Tag Tracker is running"))
                 .setContentText(text)
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notify)
                 .setContentIntent(tap)
                 .setOnlyAlertOnce(true)
                 .setOngoing(ongoing)   // ongoing = a persistent I18n.t("active in background") indicator
@@ -119,7 +119,7 @@ final class Notify {
         Notification n = b.setContentTitle(title)
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notify)
                 .setContentIntent(open)
                 .setAutoCancel(true)
                 .build();
@@ -144,7 +144,7 @@ final class Notify {
         Notification nt = b.setContentTitle("⚠ " + name + ": " + I18n.t("not seen for a long time"))
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notify)
                 .setContentIntent(open)
                 .setAutoCancel(true)
                 .build();

@@ -159,3 +159,16 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 /* gestapelte Tags: Linien zum echten Ort */
 .ov-row.stale .ov-seen { color: var(--warn); font-weight: 600; }
 .stale-note { color: var(--warn); font-weight: 600; }
+
+/* Logo in der Kopfzeile */
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-logo { width: 30px; height: 30px; border-radius: 8px; box-shadow: var(--shadow-sm); }
+/* Zönose-Buttons in den Tag-Details (Bild je nach Hell/Dunkel) */
+.detail .acts.pics { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.detail .acts.pics button { padding: 3px 3px 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.detail .acts.pics button img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 9px; display: block; }
+.detail .acts.pics button .dk { display: none; }
+:root[data-theme="dark"] .detail .acts.pics button .lt { display: none; }
+:root[data-theme="dark"] .detail .acts.pics button .dk { display: block; }
+.detail .acts.pics button.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.near { color: var(--success); font-weight: 600; }

@@ -9,7 +9,7 @@ mkdir -p "$OUT/static"
 cp server-php/*.php server-php/LIESMICH.txt "$OUT/"
 cp web/index.html "$OUT/map.html"
 cp web/help.html web/datenschutz.html web/version.json "$OUT/"
-cp web/static/* "$OUT/static/"
+cp -r web/static/. "$OUT/static/"
 # Für den Server unnötig: App-Manifest-Verweis stört nicht, bleibt drin.
 (cd dist && zip -qr find-all-my-tags-server.zip find-all-my-tags-server)
 echo "dist/find-all-my-tags-server.zip"

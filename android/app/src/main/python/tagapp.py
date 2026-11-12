@@ -437,12 +437,13 @@ def ble_ingest(frames_json: str) -> str:
     """frames_json = JSON-Liste der beim Scan gesehenen 0xFEAA-Service-Daten (Hex).
     Gibt JSON-Liste der Tags zurück, deren Akku neu auf niedrig/kritisch gefallen ist."""
     from server import battery, db
-    alerts = battery.ingest(json.loads(frames_json or "[]"))
+    frames = json.loads(frames_json or "[]")
+    alerts = battery.ingest(frames)
     names = {d["id"]: d["name"] for d in db.get_devices()}
     for a in alerts:
         a["name"] = names.get(a["id"], "Tag")
     _save_status(ble_last_scan=int(time.time()))
-    return json.dumps(alerts)
+    return json.dumps({"alerts": alerts, "matched": battery.last_matched, "frames": len(frames)})
 
 
 def ble_known() -> int:
@@ -474,8 +475,13 @@ def stale_alerts() -> str:
     s = _load_status()
     told = s.get("stale_told", {})
     out = []
+    try:
+        from server import battery
+        seen = {k: v.get("seen_ts") or 0 for k, v in battery.state().items()}
+    except Exception:
+        seen = {}
     for d in db.get_devices():
-        ts = d.get("last_ts")
+        ts = max(d.get("last_ts") or 0, seen.get(d["id"], 0)) or None   # auch per Bluetooth gesehen zählt
         if ts is None:
             continue
         if now - ts > h * 3600:

@@ -32,6 +32,7 @@ _BEACONS = DATA_DIR / "beacons.json"
 _STATE = DATA_DIR / "battery.json"
 _lock = threading.Lock()
 _eid_cache: dict[tuple[str, int], tuple[bytes, int]] = {}
+last_matched = 0   # wie viele Tags beim letzten Scan erkannt wurden
 
 
 def _load(path) -> dict:
@@ -103,6 +104,8 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
     """Nimmt die beim Scan gesehenen Service-Daten (Hex) entgegen.
     Speichert den Akkustand je Tag und gibt die Tags zurück, deren Akku
     gerade auf "niedrig" oder "kritisch" gefallen ist (für die Benachrichtigung)."""
+    global last_matched
+    last_matched = 0
     now = int(now or time.time())
     frames = []
     for h in frames_hex or []:
@@ -118,6 +121,7 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
     if not cands:
         return []
     alerts = []
+    matched = set()
     with _lock:
         state = _load(_STATE)
         for b in frames:
@@ -125,6 +129,7 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
             if not hit:
                 continue
             device_id, r = hit
+            matched.add(device_id)
             level = decode_level(b[21], r) if len(b) >= 22 else 0
             prev = state.get(device_id, {})
             state[device_id] = {"level": level, "ts": now, "seen_ts": now}
@@ -134,6 +139,7 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
             if level >= 2 and level > prev.get("level", 0):
                 alerts.append({"id": device_id, "level": level})
         _save(_STATE, state)
+    last_matched = len(matched)
     return alerts
 
 

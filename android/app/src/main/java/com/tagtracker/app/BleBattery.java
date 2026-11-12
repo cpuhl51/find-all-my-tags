@@ -33,6 +33,8 @@ final class BleBattery {
     static final ParcelUuid FHN = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
     private static final long MIN_GAP_MS = 5 * 60 * 1000L;
     private static volatile long lastScan = 0;
+    /** Wie viele eigene Tags beim letzten Scan erkannt wurden. */
+    static volatile int lastMatched = 0;
 
     private BleBattery() {}
 
@@ -110,12 +112,15 @@ final class BleBattery {
             } catch (Exception ignored) {
             }
         }
+        lastMatched = 0;
         if (frames.isEmpty()) return 0;
         try {
             JSONArray arr = new JSONArray();
             for (String f : frames) arr.put(f);
-            String res = TagApp.py(ctx).callAttr("ble_ingest", arr.toString()).toString();
-            JSONArray alerts = new JSONArray(res);
+            JSONObject res = new JSONObject(TagApp.py(ctx).callAttr("ble_ingest", arr.toString()).toString());
+            lastMatched = res.optInt("matched", 0);
+            JSONArray alerts = res.optJSONArray("alerts");
+            if (alerts == null) alerts = new JSONArray();
             for (int i = 0; i < alerts.length(); i++) {
                 JSONObject a = alerts.getJSONObject(i);
                 Notify.batteryAlert(ctx, a.getString("id"), a.getString("name"), a.getInt("level"));

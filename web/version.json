@@ -1,6 +1,22 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "verlauf": [
+    {
+      "version": "1.4.0",
+      "datum": "2026-11-12",
+      "aenderungen": [
+        "Neues App-Logo und Zönose-Bildknöpfe für Verlauf, Orten, Klingeln und Teilen (hell und dunkel)",
+        "„In der Nähe“: Tags, die das Handy gerade per Bluetooth erkennt, werden als in der Nähe angezeigt",
+        "Nach „Akku prüfen“ meldet die App, wie viele Tags sie erkannt hat",
+        "Drive-Status aus der Kopfzeile in eine kleine Statuszeile verschoben"
+      ],
+      "aenderungen_en": [
+        "New app logo and Zönose picture buttons for history, locate, ring and share (light and dark)",
+        "“Nearby”: tags the phone currently recognises via Bluetooth are shown as nearby",
+        "After “Check battery” the app tells you how many tags it recognised",
+        "Drive status moved from the header into a small status line"
+      ]
+    },
     {
       "version": "1.3.0",
       "datum": "2026-11-12",

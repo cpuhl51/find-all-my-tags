@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="static/style.css">
 <script src="static/i18n.js"></script>
 <link rel="manifest" href="static/manifest.webmanifest">
+<link rel="icon" href="static/img/logo-192.png">
 <meta name="theme-color" content="#2563eb">
 </head>
 <body>
@@ -15,8 +16,7 @@
 
 <aside id="panel">
   <div class="panel-head">
-    <div class="brand"><span class="dot"></span> Find All My Tags</div>
-    <span id="sync" class="sync-badge off" title="Google Drive sync">Drive</span>
+    <div class="brand"><img src="static/img/logo-192.png" class="brand-logo" alt=""> Find All My Tags</div>
     <button id="lang" class="sync-badge off" data-lang-switch type="button">DE</button>
     <button id="toggle" class="icon toggle-big" title="Hide panel" aria-label="Hide panel">▾</button>
   </div>
@@ -62,6 +62,7 @@
       <button id="pollNow" class="primary">Check all now</button>
     </div>
     <div class="muted small" id="pollStatus"></div>
+    <div class="muted small" id="sync"></div>
 
     <div class="field">View
       <div class="views">
