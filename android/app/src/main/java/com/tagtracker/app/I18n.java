@@ -103,10 +103,10 @@ final class I18n {
               "4. Deine Tags");
         m.put("5. Theft / guard alerts",
               "5. Diebstahl- / Wächter-Alarm");
-        m.put("6. Tag batteries (Bluetooth)",
-              "6. Akkustand der Tags (Bluetooth)");
-        m.put("7. App lock (this phone only)",
-              "7. App-Sperre (nur auf diesem Handy)");
+        m.put("5. Tag batteries (Bluetooth)",
+              "5. Akkustand der Tags (Bluetooth)");
+        m.put("6. App lock (this phone only)",
+              "6. App-Sperre (nur auf diesem Handy)");
         m.put("About this app",
               "Über diese App");
         m.put("Active",
@@ -185,8 +185,8 @@ final class I18n {
               "App-Passwort eingeben");
         m.put("Export failed: ",
               "Export fehlgeschlagen: ");
-        m.put("Find Hub shows only your tag's last spot. This app saves the full history and alerts you if it moves. New here? Read the quick guide first – it explains everything.",
-              "Find Hub zeigt nur den letzten Ort deiner Tags. Diese App speichert den ganzen Verlauf und warnt dich, wenn sich ein Tag bewegt. Neu hier? Lies zuerst die kurze Anleitung – sie erklärt alles.");
+        m.put("Find Hub shows only one tag at a time and only its last spot. This app shows all your tags on one map and saves their full history. New here? Read the quick guide first – it explains everything.",
+              "Find Hub zeigt immer nur einen Tag und nur seinen letzten Ort. Diese App zeigt alle deine Tags auf einer Karte und speichert ihren ganzen Verlauf. Neu hier? Lies zuerst die kurze Anleitung – sie erklärt alles.");
         m.put("Forgot? Show hint",
               "Vergessen? Hinweis zeigen");
         m.put("Guard mode is off.",

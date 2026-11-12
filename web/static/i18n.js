@@ -14,6 +14,20 @@
   document.documentElement.lang = LANG;
   document.documentElement.dataset.lang = LANG;
 
+  // ---------- Hell/Dunkel: Oberfläche und Karte getrennt (auto | light | dark) ----------
+  const getPref = (k) => { try { const v = localStorage.getItem(k); return v === 'light' || v === 'dark' ? v : 'auto'; } catch (e) { return 'auto'; } };
+  const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+  function applyTheme() {
+    const sys = mq && mq.matches ? 'dark' : 'light';
+    const ui = getPref('theme'), mp = getPref('mapTheme');
+    const eff = ui === 'auto' ? sys : ui;
+    document.documentElement.dataset.theme = eff;
+    document.documentElement.dataset.map = mp === 'auto' ? eff : mp;
+  }
+  function setTheme(key, v) { try { localStorage.setItem(key, v); } catch (e) {} applyTheme(); }
+  applyTheme();
+  if (mq && mq.addEventListener) mq.addEventListener('change', applyTheme);
+
   const DE = {
     // Hauptseite
     'Google Drive sync': 'Google-Drive-Synchronisierung',
@@ -113,6 +127,25 @@
     'Password': 'Passwort',
     'Sign in': 'Anmelden',
     'Not affiliated with Google. Independent, open-source. For tracking your own property.': 'Keine Verbindung zu Google. Unabhängig, Open Source. Zum Orten deines eigenen Eigentums.',
+    // Ansicht
+    'Display': 'Oberfläche',
+    'Map': 'Karte',
+    'Auto': 'Auto',
+    'Light': 'Hell',
+    'Dark': 'Dunkel',
+    'View': 'Ansicht',
+    // Tag-Details
+    'History': 'Verlauf',
+    'Locate': 'Orten',
+    'Ring': 'Klingeln',
+    'Share': 'Teilen',
+    'Rename': 'Umbenennen',
+    'Hide history': 'Verlauf aus',
+    'History of {name}': 'Verlauf von {name}',
+    'Check all now': 'Alle jetzt abfragen',
+    'Last seen': 'Zuletzt gesehen',
+    'never': 'noch nie',
+    'Name is only changed in this app, not at Google.': 'Der Name wird nur in dieser App geändert, nicht bei Google.',
     // Sprache
     'Language': 'Sprache',
   };
@@ -147,7 +180,7 @@
     const u = new URL(location.href); u.searchParams.set('lang', code); location.href = u.toString();
   }
 
-  window.I18N = { lang: LANG, t, translateNode, setLang };
+  window.I18N = { lang: LANG, t, translateNode, setLang, setTheme, getPref };
   window.t = t;
 
   const run = () => {
@@ -155,7 +188,7 @@
     if (document.title && DE[document.title]) document.title = DE[document.title];
     // Umschalter (falls auf der Seite vorhanden)
     document.querySelectorAll('[data-lang-switch]').forEach((b) => {
-      b.textContent = LANG === 'de' ? 'EN' : 'DE';
+      b.innerHTML = LANG === 'en' ? '<b>EN</b>/DE' : 'EN/<b>DE</b>';
       b.title = LANG === 'de' ? 'Switch to English' : 'Auf Deutsch umschalten';
       b.addEventListener('click', () => setLang(LANG === 'de' ? 'en' : 'de'));
     });

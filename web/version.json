@@ -1,6 +1,28 @@
 {
-  "version": "1.1.1",
+  "version": "1.2.0",
   "verlauf": [
+    {
+      "version": "1.2.0",
+      "datum": "2026-11-12",
+      "aenderungen": [
+        "Jeder Tag hat eine eigene Form und Farbe, auch in der Liste",
+        "Liste zweispaltig, damit mehr Tags auf einmal sichtbar sind",
+        "Tipp auf einen Tag zentriert ihn im sichtbaren Teil der Karte, die Gesamtansicht bleibt",
+        "Verlauf, Orten, Klingeln und Teilen direkt beim gewählten Tag",
+        "Auswahlliste und Bewegungsalarm entfernt",
+        "Hell/Dunkel getrennt für Oberfläche und Karte",
+        "Sprachknopf zeigt EN/DE"
+      ],
+      "aenderungen_en": [
+        "Each tag has its own shape and colour, also in the list",
+        "Two-column list so more tags fit on screen",
+        "Tapping a tag centres it in the visible part of the map, the overview stays",
+        "History, locate, ring and share right at the selected tag",
+        "Dropdown and movement alarm removed",
+        "Separate light/dark setting for panel and map",
+        "Language button shows EN/DE"
+      ]
+    },
     {
       "version": "1.1.1",
       "datum": "2026-11-12",

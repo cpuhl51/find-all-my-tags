@@ -99,8 +99,8 @@ public class SettingsActivity extends Activity {
         welcome.setTypeface(welcome.getTypeface(), android.graphics.Typeface.BOLD);
         welcome.setPadding(0, dp(6), 0, dp(2));
         root.addView(welcome);
-        note(I18n.t("Find Hub shows only your tag's last spot. This app saves the full history and alerts you if it "
-                + "moves. New here? Read the quick guide first – it explains everything."));
+        note(I18n.t("Find Hub shows only one tag at a time and only its last spot. This app shows all your tags on one map "
+                + "and saves their full history. New here? Read the quick guide first – it explains everything."));
         Button guide = new Button(this);
         guide.setText(I18n.t("📖  How it works (guide)"));
         guide.setAllCaps(false);
@@ -280,20 +280,7 @@ public class SettingsActivity extends Activity {
             toast(I18n.t("Checking Find Hub…"));
         });
 
-        heading(I18n.t("5. Theft / guard alerts"));
-        note(I18n.t("Turn this ON when the bike is parked. If a tag MOVES more than ~150 m, you get a LOUD "
-                + "notification with a Maps link – so you can act fast if it's stolen. Uses the same "
-                + "background checks, so no extra battery. Tip: if it's stolen, share the live location and history "
-                + "with the police – don't confront the thief yourself."));
-        boolean guard = TagApp.prefs(this).getBoolean(TagApp.KEY_GUARD, false);
-        info(guard ? I18n.t("✓ Guard mode is ON – you'll be alerted if a tag moves.")
-                : I18n.t("Guard mode is off."));
-        button(guard ? I18n.t("Turn OFF guard mode") : I18n.t("Turn ON guard mode"), v -> {
-            TagApp.prefs(this).edit().putBoolean(TagApp.KEY_GUARD, !guard).apply();
-            render();
-        });
-
-        heading(I18n.t("6. Tag batteries (Bluetooth)"));
+        heading(I18n.t("5. Tag batteries (Bluetooth)"));
         note(I18n.t("Tags send their battery level (normal / low / critical) over Bluetooth. The app can only read it "
                 + "when a tag is near this phone – then you get a notification if a battery gets low. "
                 + "Exact percentages are not sent by the tags. Run “Check for locations now” once first."));
@@ -315,7 +302,7 @@ public class SettingsActivity extends Activity {
             }
         }
 
-        heading(I18n.t("7. App lock (this phone only)"));
+        heading(I18n.t("6. App lock (this phone only)"));
         note(I18n.t("Protect the app with a password so no one who picks up your phone can open your tracker. "
                 + "The password and hint are stored ONLY on this phone – never sent to Google or Drive, so they "
                 + "can't be recovered from anywhere else. If you forget it and the hint doesn't help, reinstall the app."));

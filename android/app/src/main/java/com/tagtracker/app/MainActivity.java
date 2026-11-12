@@ -84,6 +84,8 @@ public class MainActivity extends Activity {
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 9);
         }
+        // Bewegungsalarm gibt es nicht mehr (es werden alle Tags gezeigt): sicher ausschalten.
+        TagApp.prefs(this).edit().putBoolean(TagApp.KEY_GUARD, false).apply();
         if (!TagApp.prefs(this).getBoolean(TagApp.KEY_PAUSED, false)) PollWorker.schedule(this);
         new Thread(() -> {
             try { TagApp.py(this).callAttr("set_phone_id", TagApp.deviceId(this)); } catch (Exception ignored) {}
