@@ -1,6 +1,16 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "verlauf": [
+    {
+      "version": "1.4.1",
+      "datum": "2026-11-13",
+      "aenderungen": [
+        "Zönose-Knöpfe mit gezeichnetem Rahmen, auf Deutsch und Englisch, jeweils hell und dunkel"
+      ],
+      "aenderungen_en": [
+        "Zönose buttons with their drawn frame, in German and English, each light and dark"
+      ]
+    },
     {
       "version": "1.4.0",
       "datum": "2026-11-12",

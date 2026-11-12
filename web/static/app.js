@@ -326,9 +326,10 @@
   });
 
   // Zönose-Knopf: helles und dunkles Bild, CSS zeigt das passende
+  const btnLang = window.I18N && I18N.lang === 'de' ? 'de' : 'en';
   function picBtn(id, img, label, on) {
     return `<button type="button" id="${id}" class="${on ? 'on' : ''}" title="${esc(label)}" aria-label="${esc(label)}">`
-      + `<img class="lt" src="static/img/btn-${img}-light.png" alt=""><img class="dk" src="static/img/btn-${img}-dark.png" alt=""></button>`;
+      + `<img class="lt" src="static/img/btn-${img}-${btnLang}-light.png" alt=""><img class="dk" src="static/img/btn-${img}-${btnLang}-dark.png" alt=""></button>`;
   }
 
   function staleText() {
