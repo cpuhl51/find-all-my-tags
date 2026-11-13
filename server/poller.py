@@ -27,6 +27,7 @@ def poll_once() -> int:
             )
             print(f"[poller] {status['last_error']}")
             return 0
+        status["active_ids"] = [cid for _, cid in trackers]
         for name, canonic_id in trackers:
             db.upsert_device(canonic_id, name)
             try:

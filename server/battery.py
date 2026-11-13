@@ -27,7 +27,7 @@ from .config import DATA_DIR
 ROTATION = 1024          # EID-Wechsel alle 2^10 Sekunden
 WINDOWS = 3              # so viele Fenster vor/nach der Schätzung prüfen (Uhr-Abweichung)
 WIDE_WINDOWS = 48        # Suche um "jetzt minus Kopplungsdatum", wenn kein Uhrstand bekannt ist (±13,6 h)
-MANUAL_WINDOWS = 252     # beim Knopf "Akku prüfen": ±3 Tage
+MANUAL_WINDOWS = 96      # beim Knopf "Akku prüfen": je Uhr-Modell ±27 Stunden
 _DIAG = None             # wird unten gesetzt (Pfad der Diagnose-Datei)
 LEVELS = {0: "unknown", 1: "normal", 2: "low", 3: "critical"}
 
@@ -54,23 +54,27 @@ def _save(path, data: dict) -> None:
 
 # ---------- beim Standortabruf: Schlüssel und Uhrstand merken ----------
 
-def remember(device_id: str, identity_key: bytes, anchor_ts: int, beacon_counter: int, pair_date: int = 0) -> None:
-    """anchor_ts = Unix-Zeit des Berichts, beacon_counter = Uhrstand des Tags zu dieser Zeit.
-    pair_date = Kopplungsdatum (Ersatz, wenn Google keinen Uhrstand mitliefert, z. B. bei eigenen Berichten)."""
+def remember(device_id: str, identity_key: bytes, anchor_ts: int, beacon_counter: int,
+             pair_date: int = 0, created: int = 0, samples: list | None = None) -> None:
+    """Merkt sich den Schlüssel des Tags IMMER und dazu, was Google zur Tag-Uhr verrät:
+    anchor_ts/beacon_counter = Uhrstand des Tags zur Zeit eines Berichts (fehlt bei eigenen Berichten),
+    pair_date = Kopplungsdatum, created = Erstellungsdatum des Schlüssels."""
     if not identity_key:
         return
+    valid = lambda v: 1_000_000_000 < int(v or 0) < time.time() + 86400
     with _lock:
         data = _load(_BEACONS)
         old = data.get(device_id, {})
-        same_key = old.get("ik") == identity_key.hex()
-        entry = dict(old) if same_key else {}
+        entry = dict(old) if old.get("ik") == identity_key.hex() else {}
         entry["ik"] = identity_key.hex()
-        if 1_400_000_000 < int(pair_date or 0) < time.time() + 86400:
+        if valid(pair_date):
             entry["pair"] = int(pair_date)
+        if valid(created):
+            entry["created"] = int(created)
+        if samples:
+            entry["samples"] = samples
         if beacon_counter > 0 and not entry.get("exact") and anchor_ts >= entry.get("ts", 0):
             entry["ts"], entry["counter"] = int(anchor_ts), int(beacon_counter)
-        if "counter" not in entry and "pair" not in entry:
-            return
         data[device_id] = entry
         _save(_BEACONS, data)
 
@@ -93,20 +97,30 @@ def _eid_and_r(ik_hex: str, window_start: int) -> tuple[bytes, int]:
 
 
 def _candidates(now: int, wide: bool = False) -> dict[bytes, tuple[str, int, int]]:
-    """EID -> (device_id, r, Fensterbeginn) für alle bekannten Tags rund um die geschätzte Tag-Uhr."""
+    """EID -> (device_id, r, Fensterbeginn). Probiert mehrere Modelle der Tag-Uhr:
+    Uhrstand aus Googles Berichten, Unix-Zeit, Sekunden seit Schlüssel-Erstellung, seit Kopplung."""
     out = {}
+    span_wide = MANUAL_WINDOWS if wide else 0
     for device_id, b in _load(_BEACONS).items():
         guesses = []
-        if b.get("counter"):
-            guesses.append((b["counter"] + (now - b["ts"]), WINDOWS if b.get("exact") or not wide else 24))
-        if b.get("pair") and not b.get("exact"):
-            guesses.append((now - b["pair"], MANUAL_WINDOWS if wide else WIDE_WINDOWS))
+        if b.get("exact"):
+            guesses.append((b["counter"] + (now - b["ts"]), WINDOWS))
+        else:
+            if b.get("counter"):
+                guesses.append((b["counter"] + (now - b["ts"]), max(24, span_wide)))
+            guesses.append((now, max(6, span_wide)))                       # Uhr = Unix-Zeit
+            if b.get("created"):
+                guesses.append((now - b["created"], max(6, span_wide)))    # seit Schlüssel-Erstellung
+            if b.get("pair"):
+                guesses.append((now - b["pair"], max(WIDE_WINDOWS, span_wide)))
+        seen_w = set()
         for est, span in guesses:
             base = est - est % ROTATION
             for k in range(-span, span + 1):
                 w = base + k * ROTATION
-                if w < 0:
+                if w < 0 or w in seen_w:
                     continue
+                seen_w.add(w)
                 eid, r = _eid_and_r(b["ik"], w)
                 out[eid] = (device_id, r, w)
     return out
@@ -187,7 +201,8 @@ def _write_diag(now: int, raw: list, cands: dict, wide: bool) -> None:
         for device_id, b in beacons.items():
             tags[device_id] = {
                 "counter_anchor": bool(b.get("counter")), "exact": bool(b.get("exact")),
-                "pair": b.get("pair"),
+                "pair": b.get("pair"), "created": b.get("created"),
+                "samples": [[ts, c, c - ts] for ts, c in (b.get("samples") or [])][-3:],
                 "est_from_counter": (b["counter"] + now - b["ts"]) if b.get("counter") else None,
                 "est_from_pair": (now - b["pair"]) if b.get("pair") else None,
             }

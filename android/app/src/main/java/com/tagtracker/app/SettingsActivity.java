@@ -110,6 +110,31 @@ public class SettingsActivity extends Activity {
         glp.bottomMargin = dp(8);
         root.addView(guide, glp);
         progress(signedIn, unlocked);
+        bigButton(I18n.t("Close settings and go to the map"), 0xFF2563EB,
+                v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
+        boolean pausedTop = TagApp.prefs(this).getBoolean(TagApp.KEY_PAUSED, false);
+        if (pausedTop) {
+            info(I18n.t("⏸ Background tracking is STOPPED. No locations are being saved."));
+            bigButton(I18n.t("▶ Restart app (resume background tracking)"), 0xFF16A34A, v -> {
+                TagApp.prefs(this).edit().putBoolean(TagApp.KEY_PAUSED, false).apply();
+                PollWorker.schedule(this);
+                toast(I18n.t("Tracking resumed"));
+                render();
+            });
+        } else {
+            bigButton(I18n.t("⏹ Shut down the app completely"), 0xFFDC2626, v -> new AlertDialog.Builder(this)
+                    .setTitle(I18n.t("Shut down the app completely?"))
+                    .setMessage(I18n.t("No more locations, warnings or backups until you open the app and restart it. "
+                            + "Normally you don't need this – closing the app keeps it working in the background."))
+                    .setPositiveButton(I18n.t("Shut down"), (d, w) -> {
+                        TagApp.prefs(this).edit().putBoolean(TagApp.KEY_PAUSED, true).apply();
+                        PollWorker.stop(this);
+                        toast(I18n.t("App shut down. Open it again and tap Restart to resume."));
+                        finishAffinity();
+                    })
+                    .setNegativeButton(I18n.t("Cancel"), null)
+                    .show());
+        }
 
         heading(I18n.t("1. Connect your Google account"));
         note(I18n.t("Two quick steps on Google's own pages (the app never sees your password or PIN). "
@@ -187,35 +212,21 @@ public class SettingsActivity extends Activity {
         });
 
         note(I18n.t("Closing the app (swiping it away) does NOT stop tracking – it keeps checking and saving in "
-                + "the background, which is what you want. Use the button below only when you want to FULLY stop it."));
-        boolean paused = TagApp.prefs(this).getBoolean(TagApp.KEY_PAUSED, false);
-        if (paused) {
-            info(I18n.t("⏸ Background tracking is STOPPED. No locations are being saved."));
-            button(I18n.t("Resume background tracking"), v -> {
-                TagApp.prefs(this).edit().putBoolean(TagApp.KEY_PAUSED, false).apply();
-                PollWorker.schedule(this);
-                toast(I18n.t("Tracking resumed"));
-                render();
-            });
-        } else {
-            button(I18n.t("⏹ Stop tracking (full exit)"), v -> {
-                TagApp.prefs(this).edit().putBoolean(TagApp.KEY_PAUSED, true).apply();
-                PollWorker.stop(this);
-                toast(I18n.t("Background tracking stopped. Tap Resume to start again."));
-                render();
-            });
-        }
+                + "the background, which is what you want."));
+        note(I18n.t("To stop it fully, use the red button at the top."));
 
         heading(I18n.t("3. Storage & sync"));
-        note(I18n.t("Your locations are ALWAYS saved on the phone first – they can never be lost, even with no "
-                + "internet or if Drive is busy. Google Drive is an extra cloud copy on top. Choose:\n"
-                + "• CONTINUOUS SYNC (recommended): phone + Google Drive, syncs after each check. If offline or "
-                + "rate-limited, it just retries later – nothing is lost.\n"
-                + "• LOCAL ONLY: keep everything on the phone, no cloud (turn both options below off)."));
+        note(I18n.t("Yes, your locations are kept twice: ALWAYS on the phone (that's what the map shows), and – if you "
+                + "want – as a BACKUP COPY in your Google Drive, so a new phone gets your history back.\n"
+                + "You only need ONE of the two Drive options below:\n"
+                + "• A) Default folder ‘TagTracker’ (recommended, nothing to set up), or\n"
+                + "• B) your own Drive file (only if you want it in a particular place).\n"
+                + "Both off = phone only, no cloud copy."));
 
         // Default (automatic) mode: one fixed folder in the SAME Google account, no file picking.
         // Signing into the app on another phone with the same account pulls the history back.
         boolean autoDrive = TagApp.prefs(this).getBoolean(TagApp.KEY_DRIVE_AUTO, false);
+        info(I18n.t("A) Default folder"));
         info(autoDrive ? I18n.t("✓ DEFAULT automatic sync is ON (folder ‘TagTracker’ in your Google account).")
                 : I18n.t("DEFAULT: automatic sync to a ‘TagTracker’ folder in your own Google account – no "
                   + "file picking, and it comes back automatically when you sign in on another phone."));
@@ -242,6 +253,9 @@ public class SettingsActivity extends Activity {
             });
         }
 
+        info(I18n.t("B) Own Drive file (optional)"));
+        if (autoDrive && DriveBackup.enabled(this))
+            note(I18n.t("⚠ A and B are both on – that is not needed. One of them is enough; you can turn B off."));
         note(I18n.t("— or use a CUSTOM file (any account / location) —\n"
                 + "In the picker, tap ☰ and choose GOOGLE DRIVE (not phone storage), pick a folder, and name it "
                 + "e.g. TagTracker-history.csv."));
@@ -375,7 +389,8 @@ public class SettingsActivity extends Activity {
         status = new TextView(this);
         status.setPadding(0, dp(16), 0, 0);
         root.addView(status);
-        button(I18n.t("Open map"), v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
+        bigButton(I18n.t("Close settings and go to the map"), 0xFF2563EB,
+                v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
         button(I18n.t("Help"), v -> startActivity(new Intent(this, HelpActivity.class)));
     }
 
@@ -665,9 +680,39 @@ public class SettingsActivity extends Activity {
     private void heading(String text) {
         TextView t = new TextView(this);
         t.setText(text);
-        t.setTextSize(18);
-        t.setPadding(0, dp(22), 0, dp(4));
-        root.addView(t);
+        t.setTextSize(17);
+        t.setTypeface(t.getTypeface(), android.graphics.Typeface.BOLD);
+        t.setTextColor(0xFFFFFFFF);
+        t.setPadding(dp(14), dp(10), dp(14), dp(10));
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setCornerRadius(dp(10));
+        g.setColor(0xFF2563EB);
+        t.setBackground(g);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = dp(30);
+        lp.bottomMargin = dp(8);
+        root.addView(t, lp);
+    }
+
+    /** Großer, farbiger Knopf (für wichtige Aktionen ganz oben). */
+    private void bigButton(String text, int color, View.OnClickListener onClick) {
+        Button b = new Button(this);
+        b.setText(text);
+        b.setAllCaps(false);
+        b.setTextSize(16);
+        b.setTextColor(0xFFFFFFFF);
+        b.setTypeface(b.getTypeface(), android.graphics.Typeface.BOLD);
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setCornerRadius(dp(12));
+        g.setColor(color);
+        b.setBackground(g);
+        b.setPadding(dp(12), dp(14), dp(12), dp(14));
+        b.setOnClickListener(onClick);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = dp(8);
+        root.addView(b, lp);
     }
 
     private void note(String text) {

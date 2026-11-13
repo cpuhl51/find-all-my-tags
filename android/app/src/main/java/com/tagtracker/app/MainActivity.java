@@ -59,7 +59,22 @@ public class MainActivity extends Activity {
         setContentView(web);
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
-        web.setWebChromeClient(new android.webkit.WebChromeClient());
+        web.getSettings().setGeolocationEnabled(true);
+        web.setWebChromeClient(new android.webkit.WebChromeClient() {
+            // Knopf "Mein Standort": Standort an die Karte geben (nur wenn Android es erlaubt hat)
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, android.webkit.GeolocationPermissions.Callback cb) {
+                if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    cb.invoke(origin, true, false);
+                } else {
+                    pendingGeo = cb;
+                    pendingGeoOrigin = origin;
+                    requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_GEO);
+                }
+            }
+        });
         web.addJavascriptInterface(new Native(), "Native");
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -319,6 +334,9 @@ public class MainActivity extends Activity {
     }
 
     private static final int REQ_BLE = 21;
+    private static final int REQ_GEO = 22;
+    private android.webkit.GeolocationPermissions.Callback pendingGeo;
+    private String pendingGeoOrigin;
 
     /** Menüpunkt "Akkustand prüfen": fragt bei Bedarf nach der Berechtigung und scannt. */
     void checkBatteries() {
@@ -360,6 +378,12 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
         if (code == REQ_BLE && BleBattery.hasPermissions(this)) runBatteryScan(true);
+        if (code == REQ_GEO && pendingGeo != null) {
+            boolean ok = checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            pendingGeo.invoke(pendingGeoOrigin, ok, false);
+            pendingGeo = null;
+        }
     }
 
     /** Sprache umstellen und den Bildschirm neu laden. */

@@ -1,6 +1,28 @@
 {
-  "version": "1.5.1",
+  "version": "1.6.0",
   "verlauf": [
+    {
+      "version": "1.6.0",
+      "datum": "2026-11-13",
+      "aenderungen": [
+        "Akku-Erkennung: Schlüssel aller Tags werden gespeichert (vorher nur von wenigen), mehrere Uhr-Modelle",
+        "Bei Google entfernte Tags werden nicht mehr doppelt angezeigt",
+        "Tipp auf die Beschriftung eines Tags öffnet ihn",
+        "Neue Kartenknöpfe: „Alle Tags zeigen“ und „Mein Standort“",
+        "Lange nicht gesehene Tags auf der Karte orange",
+        "Einstellungen: deutliche Bereichs-Überschriften, „App vollständig beenden“ und „Zur Karte“ ganz oben, Speicher-Text klarer",
+        "Heller „Teilen“-Knopf mit geradem Rahmen"
+      ],
+      "aenderungen_en": [
+        "Battery detection: keys of all tags are stored (before only a few), several clock models",
+        "Tags removed at Google are no longer shown twice",
+        "Tapping a tag's label opens it",
+        "New map buttons: “Show all tags” and “My location”",
+        "Tags not seen for a long time are orange on the map",
+        "Settings: clear section headings, “Shut down app” and “Go to map” at the top, clearer storage text",
+        "Light “Share” button with a straight frame"
+      ]
+    },
     {
       "version": "1.5.1",
       "datum": "2026-11-13",

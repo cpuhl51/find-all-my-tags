@@ -187,12 +187,21 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 .leaflet-tooltip.tag-label .st { display: block; font-size: 10px; font-weight: 700; }
 .leaflet-tooltip.tag-label.s-low { border-left-color: #d97706; background: #fef3c7; color: #78350f; }
 .leaflet-tooltip.tag-label.s-crit { border-left-color: #b91c1c; background: #dc2626; color: #fff; }
-.leaflet-tooltip.tag-label.s-stale { border-left-color: #1f2937; background: #4b5563; color: #fff; }
+.leaflet-tooltip.tag-label.s-stale { border-left-color: #9a3412; background: #ea580c; color: #fff; }
 .leaflet-tooltip.tag-label.s-near { border-left-color: #16a34a; }
 .leaflet-tooltip.tag-label.s-crit::before { border-right-color: #dc2626; }
 .leaflet-tooltip.tag-label.s-low::before { border-right-color: #fef3c7; }
-.leaflet-tooltip.tag-label.s-stale::before { border-right-color: #4b5563; }
+.leaflet-tooltip.tag-label.s-stale::before { border-right-color: #ea580c; }
 /* Halb ausgefahrenes Panel: nur die Details des angetippten Tags */
 #panel.peek .panel-body > :not(#detail) { display: none !important; }
 #panel.peek .panel-body { max-height: none; }
 .ov-batt.found { filter: grayscale(.2); }
+
+/* antippbare Beschriftungen */
+.leaflet-tooltip.tag-label { pointer-events: auto; cursor: pointer; }
+/* Kartenknöpfe: Alle zeigen / Mein Standort */
+.map-btns { display: flex; flex-direction: column; overflow: hidden; }
+.map-btns .map-btn { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: none; border-radius: 0; background: var(--surface); color: var(--text); }
+.map-btns .map-btn + .map-btn { border-top: 1px solid var(--border); }
+.map-btns .map-btn:active { background: var(--surface-2); }
+.recenter-btn { display: none !important; }

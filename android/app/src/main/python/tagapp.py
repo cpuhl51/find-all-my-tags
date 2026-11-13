@@ -121,6 +121,8 @@ def poll() -> int:
         added = poller.poll_once()
         _save_status(running=False, last_run=int(time.time()), last_error=poller.status["last_error"],
                      last_added=added)
+        if poller.status.get("active_ids"):
+            _save_status(active_ids=poller.status["active_ids"])
         return added
     except BaseException as e:  # SystemExit from the library must not kill the app
         ok = False
@@ -364,6 +366,10 @@ def devices_json(interval_minutes: int, backup_enabled: bool, parked: bool = Fal
     s = _load_status()
     info = license_state(phone_id)
     devices = db.get_devices()
+    active = set(_load_status().get("active_ids") or [])
+    if active:
+        # Bei Google entfernte Tags (z. B. neu hinzugefügt) nicht doppelt zeigen
+        devices = [d for d in devices if d["id"] in active]
     try:
         from server import battery
         bstate = battery.state()
@@ -480,7 +486,7 @@ def stale_alerts() -> str:
         seen = {k: v.get("seen_ts") or 0 for k, v in battery.state().items()}
     except Exception:
         seen = {}
-    for d in db.get_devices():
+    for d in _active_devices():
         ts = max(d.get("last_ts") or 0, seen.get(d["id"], 0)) or None   # auch per Bluetooth gesehen zählt
         if ts is None:
             continue
@@ -548,7 +554,7 @@ def server_upload() -> str:
     except Exception:
         bstate = {}
     devices = []
-    for d in db.get_devices():
+    for d in _active_devices():
         devices.append({k: d.get(k) for k in ("id", "name", "last_ts", "last_lat", "last_lon", "last_accuracy", "point_count")}
                        | {"battery": bstate.get(d["id"])})
     last_id = int(s.get("server_last_id") or 0)
@@ -597,8 +603,19 @@ def ble_diag() -> str:
                      f" · genau {'ja' if x['exact'] else 'nein'}"
                      f" · Schätzung {x['est_from_counter'] or '-'} / Kopplung {x['est_from_pair'] or '-'}"
                      f"{' · ERKANNT' if did in d.get('matched', []) else ''}")
+        lines.append(f"      gekoppelt {x.get('pair') or '-'} · Schlüssel erstellt {x.get('created') or '-'}"
+                     f" · Berichte (Zeit, Uhr, Differenz): {x.get('samples') or '-'}")
     known = set(d.get("tags", {}))
     missing = [n for i, n in names.items() if i not in known]
     if missing:
         lines += ["", "Ohne Schlüssel (noch keine Google-Abfrage oder Fehler): " + ", ".join(missing)]
     return "\n".join(lines)
+
+
+
+def _active_devices() -> list:
+    """Alle Tags außer denen, die bei Google entfernt wurden."""
+    from server import db
+    devs = db.get_devices()
+    active = set(_load_status().get("active_ids") or [])
+    return [d for d in devs if d["id"] in active] if active else devs

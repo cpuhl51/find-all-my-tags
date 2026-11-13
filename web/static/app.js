@@ -27,20 +27,41 @@
   L.control.layers(control, null, { position: 'topright' }).addTo(map);
   map.on('baselayerchange', (e) => { applyImagery(e.name); store.set('layer', e.name); });
 
-  const Recenter = L.Control.extend({
+  // Zwei Kartenknöpfe: alle Tags zeigen, eigener Standort
+  const ICON_ALL = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><circle cx="9" cy="10" r="1.6" fill="currentColor"/><circle cx="15" cy="9" r="1.6" fill="currentColor"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></svg>';
+  const ICON_ME = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+  const MapButtons = L.Control.extend({
     options: { position: 'topright' },
     onAdd() {
-      const b = L.DomUtil.create('button', 'leaflet-bar recenter-btn');
-      b.innerHTML = '◎'; b.title = t('Center on tag');
-      L.DomEvent.on(b, 'click', (ev) => {
-        L.DomEvent.stop(ev);
-        const d = focused();
-        if (d && d.last_lat != null) focusOn(d, true); else fitAll();
-      });
-      return b;
+      const box = L.DomUtil.create('div', 'leaflet-bar map-btns');
+      const mk = (html, title, fn) => {
+        const b = L.DomUtil.create('button', 'map-btn', box);
+        b.type = 'button'; b.innerHTML = html; b.title = title; b.setAttribute('aria-label', title);
+        L.DomEvent.on(b, 'click', (ev) => { L.DomEvent.stop(ev); fn(); });
+      };
+      mk(ICON_ALL, t('Show all tags'), () => fitAll());
+      mk(ICON_ME, t('My location'), () => showMe());
+      L.DomEvent.disableClickPropagation(box);
+      return box;
     },
   });
-  map.addControl(new Recenter());
+  map.addControl(new MapButtons());
+
+  // Eigener Standort: blauer Punkt mit Genauigkeitskreis
+  const meLayer = L.layerGroup();
+  function showMe() {
+    if (!navigator.geolocation) { alert(t('Your location is not available.')); return; }
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const ll = [pos.coords.latitude, pos.coords.longitude];
+      meLayer.clearLayers().addTo(map);
+      L.circle(ll, { radius: pos.coords.accuracy || 20, color: '#2563eb', weight: 1, fillOpacity: 0.12, interactive: false }).addTo(meLayer);
+      L.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1 }).bindTooltip(t('You are here')).addTo(meLayer);
+      const z = Math.max(map.getZoom(), 17), f = freeArea(), size = map.getSize();
+      const target = L.point((f.x0 + f.x1) / 2, f.y0 + (f.y1 - f.y0) * 0.45);
+      map.setView(map.unproject(map.project(ll, z).subtract(target.subtract(size.divideBy(2))), z), z, { animate: true });
+    }, () => alert(t('Your location is not available. Please allow location access for the app.')),
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+  }
 
   const layers = { all: L.layerGroup().addTo(map), track: L.layerGroup().addTo(map), points: L.layerGroup().addTo(map), play: L.layerGroup().addTo(map) };
   let devices = [], focusId = store.get('focus') || null, historyOn = false;
@@ -254,8 +275,9 @@
         const on = d.id === focusId, size = on ? 28 : 22;
         const icon = L.divIcon({ className: 'tag-icon', html: iconSvg(d, size, on), iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
         L.marker(pos, { icon, zIndexOffset: on ? 1000 : 0, keyboard: false })
-          .bindTooltip(labelHtml(d), { permanent: true, direction: 'right', offset: [size / 2, 0], className: 'tag-label s-' + statusOf(d).key })
+          .bindTooltip(labelHtml(d), { permanent: true, interactive: true, direction: 'right', offset: [size / 2, 0], className: 'tag-label s-' + statusOf(d).key })
           .on('click', () => select(d.id, true))
+          .on('tooltipopen', (e) => { const el = e.tooltip.getElement(); if (el) el.dataset.id = d.id; })
           .addTo(layers.all);
         if (d.last_accuracy && on) L.circle([d.last_lat, d.last_lon], { radius: d.last_accuracy, color: styleOf(d).color, weight: 1, fillOpacity: 0.08, interactive: false }).addTo(layers.all);
       });
@@ -277,8 +299,13 @@
   function labelHtml(d) {
     const st = statusOf(d);
     const icon = st.key === 'crit' ? '🔴 ' : st.key === 'low' ? '🟡 ' : st.key === 'stale' ? '⚠ ' : st.key === 'near' ? '📶 ' : '✓ ';
-    return `${icon}${esc(d.name)}` + (st.text ? `<span class="st">${esc(st.text)}</span>` : '');
+    return `<span class="lab" data-id="${esc(d.id)}">${icon}${esc(d.name)}</span>` + (st.text ? `<span class="st">${esc(st.text)}</span>` : '');
   }
+  // Tipp auf die Beschriftung zählt wie ein Tipp auf das Symbol
+  document.getElementById('map').addEventListener('click', (e) => {
+    const lab = e.target.closest && e.target.closest('.leaflet-tooltip.tag-label');
+    if (lab && lab.dataset.id) { e.stopPropagation(); select(lab.dataset.id, true); }
+  }, true);
   map.on('zoomend', () => renderMarkers());
   map.on('resize', () => renderMarkers());
   // Zuletzt gesehen = neuester Wert aus Google-Standort und eigenem Bluetooth-Scan der App

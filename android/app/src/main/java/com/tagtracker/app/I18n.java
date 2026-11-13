@@ -494,6 +494,32 @@ final class I18n {
         m.put("Show battery diagnostics", "Akku-Diagnose anzeigen");
         m.put("Battery diagnostics", "Akku-Diagnose");
         m.put("Share", "Teilen");
+        m.put("Close settings and go to the map",
+              "Einstellungen schließen und zur Karte wechseln");
+        m.put("▶ Restart app (resume background tracking)",
+              "▶ App wieder starten (Ortung im Hintergrund fortsetzen)");
+        m.put("⏹ Shut down the app completely",
+              "⏹ App vollständig beenden");
+        m.put("Shut down the app completely?",
+              "App vollständig beenden?");
+        m.put("No more locations, warnings or backups until you open the app and restart it. Normally you don't need this – closing the app keeps it working in the background.",
+              "Keine Standorte, Warnungen und Sicherungen mehr, bis du die App öffnest und wieder startest. Normalerweise brauchst du das nicht – auch geschlossen arbeitet die App im Hintergrund weiter.");
+        m.put("Shut down",
+              "Beenden");
+        m.put("App shut down. Open it again and tap Restart to resume.",
+              "App beendet. Öffne sie wieder und tippe auf „Wieder starten“.");
+        m.put("To stop it fully, use the red button at the top.",
+              "Ganz beenden kannst du sie mit dem roten Knopf ganz oben.");
+        m.put("Closing the app (swiping it away) does NOT stop tracking – it keeps checking and saving in the background, which is what you want.",
+              "Wenn du die App schließt (wegwischst), läuft die Ortung trotzdem weiter – sie fragt im Hintergrund ab und speichert, genau so soll es sein.");
+        m.put("Yes, your locations are kept twice: ALWAYS on the phone (that's what the map shows), and – if you want – as a BACKUP COPY in your Google Drive, so a new phone gets your history back.\nYou only need ONE of the two Drive options below:\n• A) Default folder ‘TagTracker’ (recommended, nothing to set up), or\n• B) your own Drive file (only if you want it in a particular place).\nBoth off = phone only, no cloud copy.",
+              "Ja, deine Standorte liegen zweimal vor: IMMER am Handy (das zeigt die Karte) und – wenn du willst – als SICHERUNGSKOPIE in deinem Google Drive, damit ein neues Handy deinen Verlauf zurückbekommt.\nVon den zwei Drive-Möglichkeiten unten brauchst du nur EINE:\n• A) Standardordner ‘TagTracker’ (empfohlen, nichts einzustellen) oder\n• B) eine eigene Drive-Datei (nur, wenn du sie an einem bestimmten Ort willst).\nBeide aus = nur am Handy, keine Kopie in der Cloud.");
+        m.put("A) Default folder",
+              "A) Standardordner");
+        m.put("B) Own Drive file (optional)",
+              "B) Eigene Drive-Datei (optional)");
+        m.put("⚠ A and B are both on – that is not needed. One of them is enough; you can turn B off.",
+              "⚠ A und B sind beide an – das ist nicht nötig. Eines reicht, du kannst B ausschalten.");
         return m;
     }
 }

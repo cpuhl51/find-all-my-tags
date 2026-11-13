@@ -316,19 +316,24 @@ def _remember_beacon(canonic_id: str, device_update) -> None:
     if reports.HasField("recentLocation"):
         pairs.append((reports.recentLocation, reports.recentLocationTimestamp))
     best = None
+    samples = []
     for loc, t in pairs:
         counter = int(loc.geoLocation.deviceTimeOffset or 0)
-        if counter > 0 and (best is None or int(t.seconds) > best[0]):
-            best = (int(t.seconds), counter)
+        if counter > 0:
+            samples.append([int(t.seconds), counter])
+            if best is None or int(t.seconds) > best[0]:
+                best = (int(t.seconds), counter)
     try:
         identity_key = retrieve_identity_key(registration)
     except SystemExit:
         return
     pair = int(getattr(registration, "pairDate", 0) or 0)
-    if best is None:
-        battery.remember(canonic_id, identity_key, 0, 0, pair)   # nur Kopplungsdatum als Ersatz
-    else:
-        battery.remember(canonic_id, identity_key, best[0], best[1], pair)
+    try:
+        created = int(registration.encryptedUserSecrets.creationDate.seconds or 0)
+    except Exception:
+        created = 0
+    battery.remember(canonic_id, identity_key, best[0] if best else 0, best[1] if best else 0,
+                     pair, created, sorted(samples)[-5:])
 
 
 def stop_listening() -> None:

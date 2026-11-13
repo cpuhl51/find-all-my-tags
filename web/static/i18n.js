@@ -168,6 +168,11 @@
     'Battery low': 'Akku niedrig',
     'never seen': 'noch nie gesehen',
     'not seen for {n}': 'seit {n} nicht gesehen',
+    'Show all tags': 'Alle Tags zeigen',
+    'My location': 'Mein Standort',
+    'You are here': 'Du bist hier',
+    'Your location is not available.': 'Dein Standort ist nicht verfügbar.',
+    'Your location is not available. Please allow location access for the app.': 'Dein Standort ist nicht verfügbar. Bitte erlaube der App den Standortzugriff.',
     // Sprache
     'Language': 'Sprache',
   };
