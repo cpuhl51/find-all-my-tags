@@ -288,6 +288,7 @@ public class SettingsActivity extends Activity {
             button(I18n.t("Allow Bluetooth battery check"), v -> requestPermissions(BleBattery.neededPermissions(), 31));
         } else {
             info(I18n.t("✓ Battery check runs whenever you open the app."));
+            button(I18n.t("Show battery diagnostics"), v -> showBatteryDiag());
             if (BleBattery.canScanInBackground(this)) {
                 info(I18n.t("✓ Also checked in the background with every location check."));
             } else {
@@ -446,6 +447,39 @@ public class SettingsActivity extends Activity {
         sc.addView(tv);
         new AlertDialog.Builder(this).setTitle(I18n.t("Legal, disclaimer & privacy"))
                 .setView(sc).setPositiveButton(I18n.t("Close"), null).show();
+    }
+
+    /** Bericht über den letzten Bluetooth-Scan anzeigen und zum Weiterschicken teilen. */
+    private void showBatteryDiag() {
+        new Thread(() -> {
+            String txt;
+            try {
+                txt = TagApp.py(this).callAttr("ble_diag").toString();
+            } catch (Exception e) {
+                txt = "Fehler: " + e.getMessage();
+            }
+            final String report = txt;
+            runOnUiThread(() -> {
+                TextView tv = new TextView(this);
+                tv.setText(report);
+                tv.setTextIsSelectable(true);
+                tv.setTypeface(android.graphics.Typeface.MONOSPACE);
+                tv.setTextSize(11);
+                int pad = dp(16);
+                tv.setPadding(pad, pad, pad, pad);
+                android.widget.ScrollView sv = new android.widget.ScrollView(this);
+                sv.addView(tv);
+                new AlertDialog.Builder(this)
+                        .setTitle(I18n.t("Battery diagnostics"))
+                        .setView(sv)
+                        .setPositiveButton(I18n.t("Share"), (d, w) -> {
+                            Intent i = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report);
+                            startActivity(Intent.createChooser(i, I18n.t("Share")));
+                        })
+                        .setNegativeButton(I18n.t("Close"), null)
+                        .show();
+            });
+        }).start();
     }
 
     private void showServerDialog() {

@@ -491,6 +491,9 @@ final class I18n {
               " Find-Hub-Signal(e) empfangen, aber noch keines passt zu einem deiner ");
         m.put(" prepared tags yet. Bring a tag right next to the phone and try again.",
               " vorbereiteten Tags. Leg einen Tag direkt neben das Handy und versuch es noch einmal.");
+        m.put("Show battery diagnostics", "Akku-Diagnose anzeigen");
+        m.put("Battery diagnostics", "Akku-Diagnose");
+        m.put("Share", "Teilen");
         return m;
     }
 }

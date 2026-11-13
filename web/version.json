@@ -1,6 +1,24 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "verlauf": [
+    {
+      "version": "1.5.1",
+      "datum": "2026-11-13",
+      "aenderungen": [
+        "Karte lässt sich weiter hineinzoomen (bis Stufe 22)",
+        "Pfeil zeigt bei halb ausgefahrenem Panel richtig nach oben",
+        "Nicht gefundene Tags auf der Karte deutlich dunkler markiert",
+        "„Akku prüfen“ sucht breiter (±3 Tage), neue Akku-Diagnose zum Weiterschicken",
+        "Heller „Teilen“-Knopf: Rahmenlinie korrigiert"
+      ],
+      "aenderungen_en": [
+        "Map zooms in further (up to level 22)",
+        "Arrow points up correctly when the panel is half open",
+        "Tags not seen are marked much darker on the map",
+        "“Check battery” searches wider (±3 days), new battery diagnostics to share",
+        "Light “Share” button: frame line fixed"
+      ]
+    },
     {
       "version": "1.5.0",
       "datum": "2026-11-13",

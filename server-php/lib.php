@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-const FAMT_VERSION = '1.5.0';
+const FAMT_VERSION = '1.5.1';
 define('DATA_DIR', __DIR__ . '/data');
 define('CONFIG_FILE', DATA_DIR . '/config.json');
 

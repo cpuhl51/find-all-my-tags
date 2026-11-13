@@ -7,15 +7,15 @@
   };
 
   // ---------- Karte ----------
-  const map = L.map('map', { preferCanvas: true, zoomControl: false }).setView([48.2, 16.37], 11);
+  const map = L.map('map', { preferCanvas: true, zoomControl: false, maxZoom: 22 }).setView([48.2, 16.37], 11);
   L.control.zoom({ position: 'topright' }).addTo(map);
-  const gsub = { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 21, attribution: '&copy; Google' };
+  const gsub = { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxNativeZoom: 21, maxZoom: 22, attribution: '&copy; Google' };
   const bases = {
-    'OpenStreetMap': { layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }), imagery: false },
+    'OpenStreetMap': { layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxNativeZoom: 19, maxZoom: 22, attribution: '&copy; OpenStreetMap contributors' }), imagery: false },
     'Google Streets': { layer: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', gsub), imagery: false },
     'Google Satellite': { layer: L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', gsub), imagery: true },
     'Google Hybrid': { layer: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', gsub), imagery: true },
-    'Esri Satellite': { layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery &copy; Esri, Maxar' }), imagery: true },
+    'Esri Satellite': { layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxNativeZoom: 19, maxZoom: 22, attribution: 'Imagery &copy; Esri, Maxar' }), imagery: true },
   };
   const applyImagery = (name) => document.body.classList.toggle('imagery', !!bases[name]?.imagery);
   const saved = store.get('layer');

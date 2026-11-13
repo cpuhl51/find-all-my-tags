@@ -433,12 +433,12 @@ def demo():
 
 # ---------- Akkustand per Bluetooth ----------
 
-def ble_ingest(frames_json: str) -> str:
+def ble_ingest(frames_json: str, wide: bool = False) -> str:
     """frames_json = JSON-Liste der beim Scan gesehenen 0xFEAA-Service-Daten (Hex).
     Gibt JSON-Liste der Tags zurück, deren Akku neu auf niedrig/kritisch gefallen ist."""
     from server import battery, db
     frames = json.loads(frames_json or "[]")
-    alerts = battery.ingest(frames)
+    alerts = battery.ingest(frames, wide=bool(wide))
     names = {d["id"]: d["name"] for d in db.get_devices()}
     for a in alerts:
         a["name"] = names.get(a["id"], "Tag")
@@ -574,3 +574,31 @@ def server_upload() -> str:
             break
     _save_status(server_last=int(time.time()), server_error=None)
     return f"ok:{sent}"
+
+
+
+def ble_diag() -> str:
+    """Lesbarer Bericht über den letzten Bluetooth-Scan (zum Weiterschicken an den Entwickler)."""
+    from server import battery, db
+    d = battery.diag()
+    if not d:
+        return "Noch kein Bluetooth-Scan. Bitte zuerst \"Akku prüfen\" tippen."
+    names = {x["id"]: x["name"] for x in db.get_devices()}
+    s = _load_status()
+    lines = [f"Find All My Tags – Akku-Diagnose", f"Scan: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(d.get('ts', 0)))}"
+             f" · breite Suche: {'ja' if d.get('wide') else 'nein'} · Kandidaten: {d.get('candidates')}",
+             f"Letzte Google-Abfrage: {time.strftime('%Y-%m-%d %H:%M', time.localtime(s.get('last_run') or 0))}", "",
+             f"Empfangene Signale ({len(d.get('frames', []))}):"]
+    for f in d.get("frames", []):
+        lines.append(f"  Typ {f['type']}  Länge {f['len']}  EID {f['eid']}…")
+    lines += ["", f"Tags ({len(d.get('tags', {}))}), erkannt: {len(d.get('matched', []))}"]
+    for did, x in d.get("tags", {}).items():
+        lines.append(f"  {names.get(did, did[:8])}: Uhrstand von Google {'ja' if x['counter_anchor'] else 'nein'}"
+                     f" · genau {'ja' if x['exact'] else 'nein'}"
+                     f" · Schätzung {x['est_from_counter'] or '-'} / Kopplung {x['est_from_pair'] or '-'}"
+                     f"{' · ERKANNT' if did in d.get('matched', []) else ''}")
+    known = set(d.get("tags", {}))
+    missing = [n for i, n in names.items() if i not in known]
+    if missing:
+        lines += ["", "Ohne Schlüssel (noch keine Google-Abfrage oder Fehler): " + ", ".join(missing)]
+    return "\n".join(lines)

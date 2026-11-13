@@ -59,7 +59,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px c
 .panel-head .brand { margin-right: auto; }
 .panel-body { padding: 14px 15px 16px; display: grid; gap: 14px; }
 #panel.collapsed .panel-body { display: none; }
-#panel.collapsed #toggle { transform: rotate(180deg); }
+#panel.collapsed #toggle, #panel.peek #toggle { transform: rotate(180deg); }
 
 .field { display: grid; gap: 7px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .field select { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--text); font-size: 14px; }
@@ -187,11 +187,11 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 .leaflet-tooltip.tag-label .st { display: block; font-size: 10px; font-weight: 700; }
 .leaflet-tooltip.tag-label.s-low { border-left-color: #d97706; background: #fef3c7; color: #78350f; }
 .leaflet-tooltip.tag-label.s-crit { border-left-color: #b91c1c; background: #dc2626; color: #fff; }
-.leaflet-tooltip.tag-label.s-stale { border-left-color: #6b7280; background: #e5e7eb; color: #374151; }
+.leaflet-tooltip.tag-label.s-stale { border-left-color: #1f2937; background: #4b5563; color: #fff; }
 .leaflet-tooltip.tag-label.s-near { border-left-color: #16a34a; }
 .leaflet-tooltip.tag-label.s-crit::before { border-right-color: #dc2626; }
 .leaflet-tooltip.tag-label.s-low::before { border-right-color: #fef3c7; }
-.leaflet-tooltip.tag-label.s-stale::before { border-right-color: #e5e7eb; }
+.leaflet-tooltip.tag-label.s-stale::before { border-right-color: #4b5563; }
 /* Halb ausgefahrenes Panel: nur die Details des angetippten Tags */
 #panel.peek .panel-body > :not(#detail) { display: none !important; }
 #panel.peek .panel-body { max-height: none; }

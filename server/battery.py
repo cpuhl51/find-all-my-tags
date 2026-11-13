@@ -27,10 +27,13 @@ from .config import DATA_DIR
 ROTATION = 1024          # EID-Wechsel alle 2^10 Sekunden
 WINDOWS = 3              # so viele Fenster vor/nach der Schätzung prüfen (Uhr-Abweichung)
 WIDE_WINDOWS = 48        # Suche um "jetzt minus Kopplungsdatum", wenn kein Uhrstand bekannt ist (±13,6 h)
+MANUAL_WINDOWS = 252     # beim Knopf "Akku prüfen": ±3 Tage
+_DIAG = None             # wird unten gesetzt (Pfad der Diagnose-Datei)
 LEVELS = {0: "unknown", 1: "normal", 2: "low", 3: "critical"}
 
 _BEACONS = DATA_DIR / "beacons.json"
 _STATE = DATA_DIR / "battery.json"
+_DIAG = DATA_DIR / "battery_diag.json"
 _lock = threading.Lock()
 _eid_cache: dict[tuple[str, int], tuple[bytes, int]] = {}
 last_matched = 0   # wie viele Tags beim letzten Scan erkannt wurden
@@ -83,21 +86,21 @@ def _eid_and_r(ik_hex: str, window_start: int) -> tuple[bytes, int]:
     from ecdsa import SECP160r1
     r = calculate_r(bytes.fromhex(ik_hex), window_start)
     eid = (r * SECP160r1.generator).x().to_bytes(20, "big")
-    if len(_eid_cache) > 8000:
+    if len(_eid_cache) > 30000:
         _eid_cache.clear()
     _eid_cache[key] = (eid, r)
     return eid, r
 
 
-def _candidates(now: int) -> dict[bytes, tuple[str, int, int]]:
+def _candidates(now: int, wide: bool = False) -> dict[bytes, tuple[str, int, int]]:
     """EID -> (device_id, r, Fensterbeginn) für alle bekannten Tags rund um die geschätzte Tag-Uhr."""
     out = {}
     for device_id, b in _load(_BEACONS).items():
         guesses = []
         if b.get("counter"):
-            guesses.append((b["counter"] + (now - b["ts"]), WINDOWS))
+            guesses.append((b["counter"] + (now - b["ts"]), WINDOWS if b.get("exact") or not wide else 24))
         if b.get("pair") and not b.get("exact"):
-            guesses.append((now - b["pair"], WIDE_WINDOWS))
+            guesses.append((now - b["pair"], MANUAL_WINDOWS if wide else WIDE_WINDOWS))
         for est, span in guesses:
             base = est - est % ROTATION
             for k in range(-span, span + 1):
@@ -122,7 +125,7 @@ def decode_level(hashed_flags: int, r: int) -> int:
     return ((hashed_flags ^ mask) >> 5) & 0b11
 
 
-def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
+def ingest(frames_hex: list[str], now: int | None = None, wide: bool = False) -> list[dict]:
     """Nimmt die beim Scan gesehenen Service-Daten (Hex) entgegen.
     Speichert den Akkustand je Tag und gibt die Tags zurück, deren Akku
     gerade auf "niedrig" oder "kritisch" gefallen ist (für die Benachrichtigung)."""
@@ -137,10 +140,15 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
             continue
         if len(b) >= 21 and b[0] in (0x40, 0x41):
             frames.append(b)
-    if not frames:
-        return []
-    cands = _candidates(now)
-    if not cands:
+    raw = []
+    for h in frames_hex or []:
+        try:
+            raw.append(bytes.fromhex(h))
+        except ValueError:
+            pass
+    cands = _candidates(now, wide) if frames else {}
+    _write_diag(now, raw, cands, wide)
+    if not frames or not cands:
         return []
     alerts = []
     matched = set()
@@ -164,7 +172,36 @@ def ingest(frames_hex: list[str], now: int | None = None) -> list[dict]:
                 alerts.append({"id": device_id, "level": level})
         _save(_STATE, state)
     last_matched = len(matched)
+    try:
+        d = _load(_DIAG); d["matched"] = sorted(matched); _save(_DIAG, d)
+    except Exception:
+        pass
     return alerts
+
+
+def _write_diag(now: int, raw: list, cands: dict, wide: bool) -> None:
+    """Merkt sich den letzten Scan, damit man ohne Raten sieht, warum nichts zugeordnet wurde."""
+    try:
+        beacons = _load(_BEACONS)
+        tags = {}
+        for device_id, b in beacons.items():
+            tags[device_id] = {
+                "counter_anchor": bool(b.get("counter")), "exact": bool(b.get("exact")),
+                "pair": b.get("pair"),
+                "est_from_counter": (b["counter"] + now - b["ts"]) if b.get("counter") else None,
+                "est_from_pair": (now - b["pair"]) if b.get("pair") else None,
+            }
+        _save(_DIAG, {
+            "ts": now, "wide": wide, "candidates": len(cands),
+            "frames": [{"type": f"{x[0]:02x}" if x else "", "len": len(x), "eid": x[1:9].hex()} for x in raw[:40]],
+            "tags": tags, "matched": [],
+        })
+    except Exception:
+        pass
+
+
+def diag() -> dict:
+    return _load(_DIAG)
 
 
 def state() -> dict:

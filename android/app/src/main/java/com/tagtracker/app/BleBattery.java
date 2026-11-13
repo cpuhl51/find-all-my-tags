@@ -119,7 +119,7 @@ final class BleBattery {
         try {
             JSONArray arr = new JSONArray();
             for (String f : frames) arr.put(f);
-            JSONObject res = new JSONObject(TagApp.py(ctx).callAttr("ble_ingest", arr.toString()).toString());
+            JSONObject res = new JSONObject(TagApp.py(ctx).callAttr("ble_ingest", arr.toString(), force).toString());
             lastMatched = res.optInt("matched", 0);
             lastKnown = res.optInt("known", 0);
             JSONArray alerts = res.optJSONArray("alerts");
