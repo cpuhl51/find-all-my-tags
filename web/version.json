@@ -1,6 +1,16 @@
 {
-  "version": "1.8.0",
+  "version": "1.8.1",
   "verlauf": [
+    {
+      "version": "1.8.1",
+      "datum": "2026-11-14",
+      "aenderungen": [
+        "ⓘ bei „Zönose“ erklärt, was die Zönose ist"
+      ],
+      "aenderungen_en": [
+        "ⓘ next to “Zönose” explains what the Zönose is"
+      ]
+    },
     {
       "version": "1.8.0",
       "datum": "2026-11-14",

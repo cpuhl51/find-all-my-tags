@@ -212,3 +212,10 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 .detail .acts.classic button svg { color: var(--accent); }
 .detail .acts.classic button.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
 .stop-ring { margin-top: 6px; font-size: 13px; }
+
+/* ⓘ-Knopf und Erklärkasten bei „Zönose“ */
+.lbl-info { display: inline-flex; align-items: center; gap: 6px; }
+.info-dot { width: 20px; height: 20px; min-height: 0; padding: 0; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font: italic 700 12px/1 Georgia, serif; display: inline-grid; place-items: center; text-transform: none; letter-spacing: 0; }
+.info-box { background: var(--surface-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 8px 12px; font-size: 13px; line-height: 1.45; }
+.info-box p { margin: 0; }
+.info-box a { color: var(--accent); font-weight: 600; }

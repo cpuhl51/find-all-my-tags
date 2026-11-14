@@ -499,6 +499,11 @@
     });
     $('stopAll').addEventListener('click', () => NATIVE.ringAll(false));
   }
+  // ⓘ bei „Zönose“: Erklärtext ein-/ausblenden, Link extern öffnen
+  $('zoenoseInfo').addEventListener('click', (e) => { e.stopPropagation(); $('zoenoseBox').hidden = !$('zoenoseBox').hidden; });
+  document.querySelectorAll('#zoenoseBox a.ext').forEach((a) => a.addEventListener('click', (e) => {
+    if (NATIVE && NATIVE.openUrl) { e.preventDefault(); NATIVE.openUrl(a.href); } else { a.target = '_blank'; a.rel = 'noopener'; }
+  }));
   // Darstellung umschalten (Tag-Symbole, Knöpfe)
   document.querySelectorAll('.seg[data-pref-key]').forEach((seg) => {
     const key = seg.dataset.prefKey, def = seg.dataset.default;
