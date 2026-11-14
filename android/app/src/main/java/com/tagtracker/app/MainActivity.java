@@ -216,6 +216,30 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void stopSound(String deviceId) {
+            new Thread(() -> {
+                try {
+                    TagApp.py(MainActivity.this).callAttr("stop_sound", deviceId);
+                    toastUi(I18n.t("Ringing stopped."));
+                } catch (Exception e) {
+                    toastUi(msg(e));
+                }
+            }).start();
+        }
+
+        @JavascriptInterface
+        public void ringAll(boolean start) {
+            new Thread(() -> {
+                try {
+                    String r = TagApp.py(MainActivity.this).callAttr("ring_all", start).toString();
+                    toastUi((start ? I18n.t("Ringing all tags: ") : I18n.t("Stopped ringing: ")) + r);
+                } catch (Exception e) {
+                    toastUi(msg(e));
+                }
+            }).start();
+        }
+
+        @JavascriptInterface
         public void rename(String deviceId, String name) {
             TagApp.py(MainActivity.this).callAttr("rename", deviceId, name);
         }

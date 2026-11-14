@@ -1,6 +1,22 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "verlauf": [
+    {
+      "version": "1.7.0",
+      "datum": "2026-11-14",
+      "aenderungen": [
+        "Wählbar: bunte Tag-Symbole oder ein einheitliches Symbol",
+        "Wählbar: Zönose-Knöpfe oder klassische Knöpfe",
+        "Klingeln stoppen, und alle Tags gleichzeitig klingeln lassen oder stoppen",
+        "Server-Synchronisierung und PC-Ansicht entfernt – die App ist schlanker"
+      ],
+      "aenderungen_en": [
+        "Choose colourful tag symbols or one uniform symbol",
+        "Choose Zönose buttons or classic buttons",
+        "Stop ringing, and ring or stop all tags at once",
+        "Server sync and PC view removed – the app is leaner"
+      ]
+    },
     {
       "version": "1.6.0",
       "datum": "2026-11-13",

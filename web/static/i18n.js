@@ -173,6 +173,15 @@
     'You are here': 'Du bist hier',
     'Your location is not available.': 'Dein Standort ist nicht verfügbar.',
     'Your location is not available. Please allow location access for the app.': 'Dein Standort ist nicht verfügbar. Bitte erlaube der App den Standortzugriff.',
+    'Tag symbols': 'Tag-Symbole',
+    'Colourful': 'Bunt',
+    'Simple': 'Einfach',
+    'Buttons': 'Knöpfe',
+    'Classic': 'Klassisch',
+    'Stop ringing': 'Klingeln stoppen',
+    '🔔 Ring all': '🔔 Alle klingeln lassen',
+    '🔕 Stop all': '🔕 Alle stoppen',
+    'Ring ALL tags at the same time?': 'ALLE Tags gleichzeitig klingeln lassen?',
     // Sprache
     'Language': 'Sprache',
   };

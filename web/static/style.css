@@ -205,3 +205,10 @@ html[data-lang="de"] body [lang="en"], html[data-lang="en"] body [lang="de"] { d
 .map-btns .map-btn + .map-btn { border-top: 1px solid var(--border); }
 .map-btns .map-btn:active { background: var(--surface-2); }
 .recenter-btn { display: none !important; }
+
+/* Klassische Knöpfe in den Tag-Details */
+.detail .acts.classic { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 9px; }
+.detail .acts.classic button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; font-size: 12px; font-weight: 600; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+.detail .acts.classic button svg { color: var(--accent); }
+.detail .acts.classic button.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.stop-ring { margin-top: 6px; font-size: 13px; }

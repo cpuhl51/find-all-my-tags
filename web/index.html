@@ -61,6 +61,10 @@
     <div class="row">
       <button id="pollNow" class="primary">Update all now</button>
     </div>
+    <div class="row" id="ringAllRow" hidden>
+      <button id="ringAll">🔔 Ring all</button>
+      <button id="stopAll">🔕 Stop all</button>
+    </div>
     <div class="muted small" id="pollStatus"></div>
     <div class="muted small" id="sync"></div>
 
@@ -70,13 +74,16 @@
         <div class="seg" data-theme-key="theme"><button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
         <span>Map</span>
         <div class="seg" data-theme-key="mapTheme"><button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+        <span>Tag symbols</span>
+        <div class="seg" data-pref-key="tagStyle" data-default="color"><button data-v="color">Colourful</button><button data-v="simple">Simple</button></div>
+        <span>Buttons</span>
+        <div class="seg" data-pref-key="btnStyle" data-default="zoenose"><button data-v="zoenose">Zönose</button><button data-v="classic">Classic</button></div>
       </div>
     </div>
     <label class="check"><input type="checkbox" id="onlineAddress"> Show the tag's address in the details</label>
     <div class="check-help"><a id="addrHelp" href="help.html#address">What happens here?</a></div>
 
     <div class="row foot">
-      <button id="pcView" class="link" hidden>🖥 PC view</button>
       <button id="server" class="link" hidden>Change server</button>
       <button id="logout" class="link">Sign out</button>
     </div>

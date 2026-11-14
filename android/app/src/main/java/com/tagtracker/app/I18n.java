@@ -437,8 +437,8 @@ final class I18n {
               "6. Warnung: Tag lange nicht gesehen");
         m.put("7. Own server (view on PC)",
               "7. Eigener Server (Ansicht am PC)");
-        m.put("8. App lock (this phone only)",
-              "8. App-Sperre (nur auf diesem Handy)");
+        m.put("7. App lock (this phone only)",
+              "7. App-Sperre (nur auf diesem Handy)");
         m.put("Change server",
               "Server ändern");
         m.put("Connection failed: ",
@@ -520,6 +520,12 @@ final class I18n {
               "B) Eigene Drive-Datei (optional)");
         m.put("⚠ A and B are both on – that is not needed. One of them is enough; you can turn B off.",
               "⚠ A und B sind beide an – das ist nicht nötig. Eines reicht, du kannst B ausschalten.");
+        m.put("Ringing stopped.",
+              "Klingeln gestoppt.");
+        m.put("Ringing all tags: ",
+              "Alle Tags klingeln: ");
+        m.put("Stopped ringing: ",
+              "Klingeln gestoppt: ");
         return m;
     }
 }

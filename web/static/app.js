@@ -67,7 +67,7 @@
   let devices = [], focusId = store.get('focus') || null, historyOn = false;
   let range = { h: store.get('range') || '168' };
   let points = [], playTimer = null, fittedOnce = false;
-  let readOnly = false, staleHours = 72, serverUrl = '';
+  let readOnly = false, staleHours = 72;
 
   // Im Android-App läuft alles über die Native-Brücke, sonst über den Web-Server.
   const NATIVE = window.Native;
@@ -109,6 +109,21 @@
   }
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  // ---------- Darstellung (vom Nutzer wählbar) ----------
+  const pref = (k, def) => store.get(k) || def;
+  const simpleTags = () => pref('tagStyle', 'color') === 'simple';
+  const classicBtns = () => pref('btnStyle', 'zoenose') === 'classic';
+
+  // Einheitliches Symbol: blauer Ortungs-Stecknadelkopf mit weißem und dunklem Rand – auf hellen, dunklen
+  // und Satellitenkarten gut sichtbar.
+  function pinSvg(size, ring) {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" style="overflow:visible">`
+      + (ring ? `<circle cx="12" cy="12" r="13.5" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="3 2"/>` : '')
+      + `<circle cx="12" cy="12" r="10" fill="none" stroke="#0f172a" stroke-width="4" opacity=".55"/>`
+      + `<circle cx="12" cy="12" r="10" fill="#2563eb" stroke="#fff" stroke-width="2.4"/>`
+      + `<circle cx="12" cy="12" r="3.6" fill="#fff"/></svg>`;
+  }
+
   // ---------- Symbol je Tag: Form + Farbe, beide verschieden ----------
   // 8 klar unterscheidbare Farben x 7 Formen. Weil 8 und 7 teilerfremd sind, ergibt
   // (Index mod 8, Index mod 7) für die ersten 56 Tags lauter verschiedene Kombinationen,
@@ -132,6 +147,7 @@
     }
   }
   function iconSvg(d, size, ring) {
+    if (simpleTags()) return pinSvg(size, ring);
     const s = styleOf(d);
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" style="overflow:visible">`
       + (ring ? `<circle cx="12" cy="12" r="13.5" fill="none" stroke="${s.color}" stroke-width="2" stroke-dasharray="3 2"/>` : '')
@@ -205,8 +221,6 @@
     devices = res.devices || [];
     readOnly = !!res.readonly;
     if (res.stale_hours != null) staleHours = Number(res.stale_hours) || 0;
-    serverUrl = res.server_url || '';
-    $('pcView').hidden = !serverUrl || !NATIVE;
     $('pollNow').hidden = readOnly;
     if (focusId && !focused()) { focusId = null; historyOn = false; }
     renderMarkers();
@@ -368,11 +382,12 @@
       + (isStale(d) ? `<div class="stale-note">⚠ ${esc(t('Not seen for over {n} – battery empty or out of range?', { n: staleText() }))}</div>` : '')
       + battLine(d)
       + (d.last_error ? `<div class="error small">${esc(d.last_error)}</div>` : '')
-      + `<div class="acts pics${readOnly ? ' ro' : ''}">`
+      + `<div class="acts ${classicBtns() ? 'classic' : 'pics'}${readOnly ? ' ro' : ''}">`
       + picBtn('aHist', 'verlauf', t('History'), historyOn)
       + (readOnly ? '' : picBtn('aLocate', 'orten', t('Locate')) + picBtn('aRing', 'klingeln', t('Ring')))
       + picBtn('aShare', 'teilen', t('Share'))
-      + `</div>`;
+      + `</div>`
+      + (readOnly ? '' : `<button type="button" class="link stop-ring" id="aStop">🔕 ${esc(t('Stop ringing'))}</button>`);
     $('dClose').onclick = () => select(d.id);
     $('aHist').onclick = () => {
       historyOn = !historyOn; renderDetail();
@@ -381,6 +396,7 @@
     if (!readOnly) {
       $('aLocate').onclick = () => locateNow(d);
       $('aRing').onclick = async () => { try { await data.sound(d.id); $('pollStatus').textContent = t('Ringing the tag…'); } catch (e) { alert(e.message); } };
+      $('aStop').onclick = () => { if (NATIVE && NATIVE.stopSound) NATIVE.stopSound(d.id); };
     }
     $('aShare').onclick = () => share(d);
     if (historyOn) $('histTitle').textContent = t('History of {name}', { name: d.name });
@@ -392,7 +408,18 @@
 
   // Zönose-Knopf: helles und dunkles Bild, CSS zeigt das passende
   const btnLang = window.I18N && I18N.lang === 'de' ? 'de' : 'en';
+  const CLASSIC = {
+    verlauf: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/>',
+    orten: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+    klingeln: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    teilen: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
+  };
   function picBtn(id, img, label, on) {
+    if (classicBtns()) {
+      return `<button type="button" id="${id}" class="cls${on ? ' on' : ''}" title="${esc(label)}">`
+        + `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CLASSIC[img]}</svg>`
+        + `<span>${esc(label)}</span></button>`;
+    }
     return `<button type="button" id="${id}" class="${on ? 'on' : ''}" title="${esc(label)}" aria-label="${esc(label)}">`
       + `<img class="lt" src="static/img/btn-${img}-${btnLang}-light.png" alt=""><img class="dk" src="static/img/btn-${img}-${btnLang}-dark.png" alt=""></button>`;
   }
@@ -517,6 +544,23 @@
   });
   // Verlauf braucht das ganze Panel
   document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('#aHist')) $('panel').classList.remove('peek'); });
+  if (NATIVE && NATIVE.ringAll) {
+    $('ringAllRow').hidden = false;
+    $('ringAll').addEventListener('click', () => {
+      if (confirm(t('Ring ALL tags at the same time?'))) NATIVE.ringAll(true);
+    });
+    $('stopAll').addEventListener('click', () => NATIVE.ringAll(false));
+  }
+  // Darstellung umschalten (Tag-Symbole, Knöpfe)
+  document.querySelectorAll('.seg[data-pref-key]').forEach((seg) => {
+    const key = seg.dataset.prefKey, def = seg.dataset.default;
+    const mark = () => seg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === pref(key, def)));
+    seg.addEventListener('click', (e) => {
+      const v = e.target.closest('button') && e.target.closest('button').dataset.v; if (!v) return;
+      store.set(key, v); mark(); renderMarkers(); renderOverview(); renderDetail();
+    });
+    mark();
+  });
   $('pollNow').addEventListener('click', async () => {
     try { await data.pollNow(); $('pollStatus').textContent = t('Checking Google for new locations…'); setTimeout(refresh, 15000); }
     catch (e) { alert(e.message); }
@@ -563,7 +607,6 @@
     $('server').hidden = false;
     $('server').addEventListener('click', () => window.TagTrackerApp.changeServer());
   }
-  $('pcView').addEventListener('click', () => { if (!serverUrl) return; if (NATIVE && NATIVE.openUrl) NATIVE.openUrl(serverUrl); else window.open(serverUrl, '_blank'); });
   $('addrHelp').addEventListener('click', (e) => {
     if (NATIVE && NATIVE.openHelp) { e.preventDefault(); NATIVE.openHelp('address'); }
     else { e.preventDefault(); location.href = 'help.html?lang=' + (window.I18N ? I18N.lang : 'en') + '#address'; }
