@@ -154,22 +154,6 @@
       + `<g fill="${s.color}" stroke="#fff" stroke-width="1.8" stroke-linejoin="round">${shapePath(s.shape)}</g></svg>`;
   }
 
-  // ---------- Akkustand (von der App per Bluetooth gelesen: 1 normal, 2 schwach, 3 kritisch) ----------
-  const BATT = { 1: ['🟢', 'normal'], 2: ['🟡', 'low'], 3: ['🔴', 'critical – replace soon'] };
-  const battDot = (d) => (d.battery && BATT[d.battery.level] ? BATT[d.battery.level][0] : (d.battery && d.battery.seen_ts ? '🔋' : ''));
-  function battLine(d) {
-    const b = d.battery;
-    const btn = NATIVE && NATIVE.checkBatteries ? ` <button type="button" class="batt-check">${esc(t('Check battery'))}</button>` : '';
-    if (b && BATT[b.level]) {
-      const [dot, label] = BATT[b.level];
-      return `<div class="batt l${b.level}">${dot} ${esc(t('Battery'))}: <span class="lvl">${esc(t(label))}</span>`
-        + ` <span class="muted">· ${esc(t('measured {ago}', { ago: ago(b.ts) }))}</span>${btn}</div>`;
-    }
-    if (!NATIVE) return '';
-    const why = b && b.level === 0 ? t('no data from this tag') : t('not measured yet – bring the tag near your phone');
-    return `<div class="batt">🔋 ${esc(t('Battery'))}: <span class="muted">${esc(why)}</span>${btn}</div>`;
-  }
-
   // Adresse über OpenStreetMap Nominatim, nur wenn eingeschaltet (schickt Koordinaten an OSM).
   const addrCache = {};
   async function addressFor(lat, lon) {
@@ -299,12 +283,9 @@
   }
   // Status auf einen Blick: ok, Akku niedrig, Akku sehr niedrig, seit x nicht gesehen
   function statusOf(d) {
-    const lvl = d.battery && d.battery.level;
-    if (lvl === 3) return { key: 'crit', text: t('Battery very low') };
-    if (lvl === 2) return { key: 'low', text: t('Battery low') };
     if (seenTs(d) == null) return { key: 'stale', text: t('never seen') };
     if (isStale(d)) return { key: 'stale', text: t('not seen for {n}', { n: sinceText(seenTs(d)) }) };
-    return { key: isNear(d) ? 'near' : 'ok', text: '' };
+    return { key: 'ok', text: '' };
   }
   function sinceText(ts) {
     const h = (Date.now() / 1000 - ts) / 3600;
@@ -312,7 +293,7 @@
   }
   function labelHtml(d) {
     const st = statusOf(d);
-    const icon = st.key === 'crit' ? '🔴 ' : st.key === 'low' ? '🟡 ' : st.key === 'stale' ? '⚠ ' : st.key === 'near' ? '📶 ' : '✓ ';
+    const icon = st.key === 'stale' ? '⚠ ' : '✓ ';
     return `<span class="lab" data-id="${esc(d.id)}">${icon}${esc(d.name)}</span>` + (st.text ? `<span class="st">${esc(st.text)}</span>` : '');
   }
   // Tipp auf die Beschriftung zählt wie ein Tipp auf das Symbol
@@ -322,10 +303,7 @@
   }, true);
   map.on('zoomend', () => renderMarkers());
   map.on('resize', () => renderMarkers());
-  // Zuletzt gesehen = neuester Wert aus Google-Standort und eigenem Bluetooth-Scan der App
-  const seenTs = (d) => Math.max(d.last_ts || 0, (d.battery && d.battery.seen_ts) || 0) || null;
-  const NEAR_SEC = 15 * 60;
-  const isNear = (d) => !!(d.battery && d.battery.seen_ts && Date.now() / 1000 - d.battery.seen_ts < NEAR_SEC);
+  const seenTs = (d) => d.last_ts || null;
   const isStale = (d) => staleHours > 0 && seenTs(d) != null && Date.now() / 1000 - seenTs(d) > staleHours * 3600;
 
   function renderOverview() {
@@ -334,12 +312,10 @@
     const list = devices.slice().sort((a, b) => (seenTs(b) || 0) - (seenTs(a) || 0));
     el.innerHTML = `<div class="ov-head"><b>${esc(t('All tags'))} (${devices.length})</b></div>`
       + '<div class="ov">' + list.map((d) => {
-        const near = isNear(d);
-        const seen = near ? '📶 ' + t('nearby') : (seenTs(d) != null ? ago(seenTs(d)) : t('never'));
-        const st = !near && (isStale(d) || seenTs(d) == null);
+        const seen = seenTs(d) != null ? ago(seenTs(d)) : t('never');
+        const st = isStale(d) || seenTs(d) == null;
         return `<button type="button" class="ov-row${d.id === focusId ? ' on' : ''}${st ? ' stale' : ''}" data-id="${esc(d.id)}">${iconSvg(d, 20)}`
-          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen${near ? ' near' : ''}">${st ? '⚠ ' : ''}${esc(seen)}</span></span>`
-          + `<span class="ov-batt">${battDot(d)}</span></button>`;
+          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen">${st ? '⚠ ' : ''}${esc(seen)}</span></span>` + `</button>`;
       }).join('') + '</div>';
     el.querySelectorAll('.ov-row').forEach((r) => r.addEventListener('click', () => select(r.dataset.id)));
   }
@@ -372,15 +348,13 @@
     $('historyBox').hidden = !(d && historyOn);
     if (!d) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    const seen = (isNear(d) ? `<div class="near">📶 ${esc(t('Nearby – just recognised by Bluetooth ({ago})', { ago: ago(d.battery.seen_ts) }))}</div>` : '')
-      + (d.last_ts != null
+    const seen = (d.last_ts != null
         ? `<div>${esc(t('Last location from Google: {t}', { t: fmt(d.last_ts) }))} <span class="muted">(${ago(d.last_ts)})</span></div>`
         : `<div class="muted">${esc(t('No locations stored yet.'))}</div>`);
     el.innerHTML = `<div class="d-head">${iconSvg(d, 22)}<b>${esc(d.name)}</b><button type="button" class="icon" id="dClose">✕</button></div>`
       + seen
       + (d.last_lat != null ? `<div id="addr" class="muted">📍 ${d.last_lat.toFixed(5)}, ${d.last_lon.toFixed(5)}</div>` : '')
       + (isStale(d) ? `<div class="stale-note">⚠ ${esc(t('Not seen for over {n} – battery empty or out of range?', { n: staleText() }))}</div>` : '')
-      + battLine(d)
       + (d.last_error ? `<div class="error small">${esc(d.last_error)}</div>` : '')
       + `<div class="acts ${classicBtns() ? 'classic' : 'pics'}${readOnly ? ' ro' : ''}">`
       + picBtn('aHist', 'verlauf', t('History'), historyOn)
@@ -402,32 +376,6 @@
     if (historyOn) $('histTitle').textContent = t('History of {name}', { name: d.name });
     if (d.last_lat != null) addressFor(d.last_lat, d.last_lon).then((a) => { const ae = $('addr'); if (ae && a) ae.textContent = '📍 ' + a; });
   }
-  document.addEventListener('click', (e) => {
-    if (e.target.closest && e.target.closest('.batt-check') && NATIVE && NATIVE.checkBatteries) NATIVE.checkBatteries();
-  });
-
-  // Zönose-Knopf: helles und dunkles Bild, CSS zeigt das passende
-  const btnLang = window.I18N && I18N.lang === 'de' ? 'de' : 'en';
-  const CLASSIC = {
-    verlauf: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/>',
-    orten: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
-    klingeln: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
-    teilen: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
-  };
-  function picBtn(id, img, label, on) {
-    if (classicBtns()) {
-      return `<button type="button" id="${id}" class="cls${on ? ' on' : ''}" title="${esc(label)}">`
-        + `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CLASSIC[img]}</svg>`
-        + `<span>${esc(label)}</span></button>`;
-    }
-    return `<button type="button" id="${id}" class="${on ? 'on' : ''}" title="${esc(label)}" aria-label="${esc(label)}">`
-      + `<img class="lt" src="static/img/btn-${img}-${btnLang}-light.png" alt=""><img class="dk" src="static/img/btn-${img}-${btnLang}-dark.png" alt=""></button>`;
-  }
-
-  function staleText() {
-    return staleHours % 24 === 0 ? t('{n} days', { n: staleHours / 24 }) : t('{n} hours', { n: staleHours });
-  }
-
   function renderSync(b) {
     const el = $('sync');
     if (!el) return;

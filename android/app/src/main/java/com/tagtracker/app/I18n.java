@@ -331,8 +331,8 @@ final class I18n {
               "Mit Drive synchronisiert");
         m.put("Tag Tracker",
               "Find All My Tags");
-        m.put("Tag Tracker is built to sip battery:\n• It uses NO GPS (positions come from Google's network). Location access is only used for the optional Bluetooth battery check.\n• It wakes only briefly every ",
-              "Find All My Tags ist auf sparsamen Akkuverbrauch ausgelegt:\n• Kein GPS (die Positionen kommen aus dem Google-Netzwerk). Standortzugriff dient nur der optionalen Akku-Prüfung der Tags per Bluetooth.\n• Die App wacht nur alle ");
+        m.put("Tag Tracker is built to sip battery:\n• It uses NO GPS (positions come from Google's network). Location access is only used for the “My location” map button.\n• It wakes only briefly every ",
+              "Find All My Tags ist auf sparsamen Akkuverbrauch ausgelegt:\n• Kein GPS (die Positionen kommen aus dem Google-Netzwerk). Standortzugriff dient nur dem Kartenknopf „Mein Standort“.\n• Die App wacht nur alle ");
         m.put("Tag Tracker is running",
               "Find All My Tags läuft");
         m.put("Tag Tracker setup",
@@ -343,8 +343,8 @@ final class I18n {
               "Tags senden ihren Akkustand (normal / niedrig / kritisch) per Bluetooth. Die App kann ihn nur lesen, wenn ein Tag in der Nähe dieses Handys ist – dann bekommst du eine Meldung, sobald ein Akku schwach wird. Genaue Prozentwerte senden die Tags nicht. Führe zuerst einmal „Jetzt Standorte abfragen“ aus.");
         m.put("Tells you when a tag's battery gets low",
               "Meldet dir, wenn der Akku eines Tags schwach wird");
-        m.put("The app checks Find Hub in the background with Android WorkManager (Google's battery-efficient scheduler) and saves every location. It uses almost no battery while idle: it only wakes for a few seconds per check, needs a network connection, and closes the connection in between. It uses no GPS (locations come from Google's network). Location access is only used for the optional Bluetooth battery check. Android's minimum interval is 15 minutes; pick a longer one to use even less battery.",
-              "Die App fragt Find Hub im Hintergrund über Android WorkManager ab (Googles stromsparender Zeitplaner) und speichert jeden Standort. Im Ruhezustand braucht sie kaum Akku: Sie wacht pro Abfrage nur ein paar Sekunden auf, braucht eine Internetverbindung und trennt sie dazwischen wieder. Kein GPS (die Standorte kommen aus dem Google-Netzwerk). Standortzugriff dient nur der optionalen Akku-Prüfung per Bluetooth. Android erlaubt mindestens 15 Minuten Abstand; ein längeres Intervall spart noch mehr Akku.");
+        m.put("The app checks Find Hub in the background with Android WorkManager (Google's battery-efficient scheduler) and saves every location. It uses almost no battery while idle: it only wakes for a few seconds per check, needs a network connection, and closes the connection in between. It uses no GPS (locations come from Google's network). Location access is only used for the “My location” map button. Android's minimum interval is 15 minutes; pick a longer one to use even less battery.",
+              "Die App fragt Find Hub im Hintergrund über Android WorkManager ab (Googles stromsparender Zeitplaner) und speichert jeden Standort. Im Ruhezustand braucht sie kaum Akku: Sie wacht pro Abfrage nur ein paar Sekunden auf, braucht eine Internetverbindung und trennt sie dazwischen wieder. Kein GPS (die Standorte kommen aus dem Google-Netzwerk). Standortzugriff dient nur dem Kartenknopf „Mein Standort“. Android erlaubt mindestens 15 Minuten Abstand; ein längeres Intervall spart noch mehr Akku.");
         m.put("The battery is getting weak. Have a spare ready.",
               "Die Batterie wird schwach. Halte eine Ersatzbatterie bereit.");
         m.put("Theft / movement alerts",
@@ -526,6 +526,26 @@ final class I18n {
               "Alle Tags klingeln: ");
         m.put("Stopped ringing: ",
               "Klingeln gestoppt: ");
+        m.put("B) Your own file in Google Drive (for advanced users)",
+              "B) Eigene Datei in Google Drive (für Fortgeschrittene)");
+        m.put("Instead of the automatic folder from A, you choose ONE file yourself, e.g. in a particular folder or in another Google account. After every check the app writes the whole history into this file.\nHow to: tap “Choose Google Drive file”. In the window that opens, tap ☰ (top left), choose “Google Drive” (not “Internal storage”), pick a folder and enter a file name, e.g. TagTracker-history.csv, then tap “Save”.\nIf you use A, you don't need B.",
+              "Statt des automatischen Ordners aus A wählst du selbst EINE Datei aus, z. B. in einem bestimmten Ordner oder in einem anderen Google-Konto. Nach jeder Abfrage schreibt die App den ganzen Verlauf in diese Datei.\nSo geht's: Tippe auf „Google-Drive-Datei wählen“. Im Fenster, das sich öffnet, oben links auf ☰ tippen, „Google Drive“ wählen (nicht „Interner Speicher“), einen Ordner aussuchen, einen Dateinamen eingeben, z. B. TagTracker-Verlauf.csv, und auf „Speichern“ tippen.\nWenn du A verwendest, brauchst du B nicht.");
+        m.put("Your tags' locations can be stored in two places: ALWAYS on the phone (that's what the map shows), and – if you want – as a BACKUP COPY in your Google Drive, so a new phone gets your history back.\nYou only need ONE of the two Drive options below:\n• A) Default folder ‘TagTracker’ (recommended, nothing to set up), or\n• B) your own Drive file (only if you want it in a particular place).\nBoth off = phone only, no cloud copy.",
+              "Die Standorte deiner Tags können an zwei Orten gespeichert werden: IMMER am Handy (das zeigt die Karte) und – wenn du willst – als SICHERUNGSKOPIE in deinem Google Drive, damit ein neues Handy deinen Verlauf zurückbekommt.\nVon den zwei Drive-Möglichkeiten unten brauchst du nur EINE:\n• A) Standardordner ‘TagTracker’ (empfohlen, nichts einzustellen) oder\n• B) eine eigene Drive-Datei (nur, wenn du sie an einem bestimmten Ort willst).\nBeide aus = nur am Handy, keine Kopie in der Cloud.");
+        m.put("▶ Restart background service",
+              "▶ Hintergrunddienst wieder starten");
+        m.put("⏹ Shut down background service completely",
+              "⏹ Hintergrunddienst vollständig beenden");
+        m.put("The app and its background service will be shut down. You will no longer get tag locations or warnings. Saving location data (and with it the tags' location history) is off until you turn the service back on manually with the green button in the settings.",
+              "App und Hintergrunddienst werden beendet. Du bekommst keine Standorte der Tags und Warnungen mehr. Die Sicherung der Standortdaten (und somit der Standortverlauf der Tags) ist deaktiviert, bis du über den grünen Button in den Einstellungen den Dienst wieder manuell aktivierst.");
+        m.put("Background service shut down. Open the app and tap the green button to restart it.",
+              "Hintergrunddienst beendet. Öffne die App und tippe auf den grünen Button, um ihn wieder zu starten.");
+        m.put("To stop it fully, use the red button “Shut down background service completely” at the top.",
+              "Ganz beenden kannst du ihn mit dem roten Button „Hintergrunddienst vollständig beenden“ ganz oben.");
+        m.put("5. Warning: tag not seen for a long time",
+              "5. Warnung: Tag lange nicht gesehen");
+        m.put("6. App lock (this phone only)",
+              "6. App-Sperre (nur auf diesem Handy)");
         return m;
     }
 }

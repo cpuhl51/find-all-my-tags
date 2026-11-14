@@ -43,22 +43,22 @@
   <div class="hero">
     <img src="static/img/logo.png" alt="" style="width:120px;height:120px;border-radius:24px;box-shadow:var(--shadow-lg)">
     <h1>Find All My Tags</h1>
-    <p lang="en">All your tags at once, their full travel history &amp; battery status</p>
-    <p lang="de">Alle deine Tags auf einen Blick, ihr ganzer Verlauf &amp; Akkustand</p>
+    <p lang="en">All your tags at once and their full travel history</p>
+    <p lang="de">Alle deine Tags auf einen Blick und ihr ganzer Verlauf</p>
   </div>
 
   <div class="card" lang="en">
     <h2><span class="ic">?</span> Why this app exists</h2>
     <div class="vs">
       <div class="bad"><h3>Google Find Hub</h3><p class="muted2">Shows only the <b>last</b> location, one tag at a time. No history — you can't see where your tag has been.</p></div>
-      <div class="good"><h3>Find All My Tags</h3><p class="muted2">Saves <b>every</b> location of <b>all</b> your tags: all on one map, full route, day→year history, replay and battery warnings.</p></div>
+      <div class="good"><h3>Find All My Tags</h3><p class="muted2">Saves <b>every</b> location of <b>all</b> your tags: all on one map, full route, day→year history, replay and “not seen” warnings.</p></div>
     </div>
   </div>
   <div class="card" lang="de">
     <h2><span class="ic">?</span> Wozu diese App?</h2>
     <div class="vs">
       <div class="bad"><h3>Google Find Hub</h3><p class="muted2">Zeigt nur den <b>letzten</b> Standort, und immer nur von einem Tag. Kein Verlauf – du siehst nicht, wo der Tag überall war.</p></div>
-      <div class="good"><h3>Find All My Tags</h3><p class="muted2">Speichert <b>jeden</b> Standort <b>aller</b> deiner Tags: alle auf einer Karte, ganze Route, Verlauf von einem Tag bis zu einem Jahr, Wiedergabe und Akku-Warnung.</p></div>
+      <div class="good"><h3>Find All My Tags</h3><p class="muted2">Speichert <b>jeden</b> Standort <b>aller</b> deiner Tags: alle auf einer Karte, ganze Route, Verlauf von einem Tag bis zu einem Jahr, Wiedergabe und Warnung „lange nicht gesehen“.</p></div>
     </div>
   </div>
 
@@ -83,14 +83,6 @@
     <p class="muted2">Neue Standorte gibt es, sobald ein Handy am Tag vorbeikommt – in belebten Gegenden oft, in einsamen selten. Dein Handy empfängt übers Internet, der Tag kann also überall sein.</p>
   </div>
 
-  <div class="card" lang="en">
-    <h2><span class="ic">🔋</span> Battery status</h2>
-    <p class="muted2">The battery level is <b>not</b> in Google's location data. It is only inside the tag's own Bluetooth signal. So the app reads it when a tag is <b>near your phone</b> (open the app, or tap “Check battery”). Tags report three levels: <b>🟢 normal</b>, <b>🟡 low</b> and <b>🔴 critical</b> – no exact percentage. When a battery gets low, you get a notification.</p>
-  </div>
-  <div class="card" lang="de">
-    <h2><span class="ic">🔋</span> Akkustand</h2>
-    <p class="muted2">Der Akkustand steckt <b>nicht</b> in Googles Standortdaten, sondern nur im Bluetooth-Signal des Tags selbst. Die App liest ihn deshalb, wenn ein Tag <b>in der Nähe deines Handys</b> ist (App öffnen oder „Akku prüfen“ tippen). Tags melden drei Stufen: <b>🟢 normal</b>, <b>🟡 schwach</b> und <b>🔴 kritisch</b> – keine genauen Prozent. Wird ein Akku schwach, bekommst du eine Meldung.</p>
-  </div>
 
   <div id="address">
   <div class="card" lang="en">
@@ -108,11 +100,11 @@
   <div id="stale">
   <div class="card" lang="en">
     <h2><span class="ic">⚠</span> “Not seen for a long time”</h2>
-    <p class="muted2">If a tag has not been seen for longer than the time you set (default 3 days), you get a notification once and the tag is marked with ⚠ in the list. Common reasons: the battery is empty, or the tag is somewhere no Android phones pass by. You set the time under <b>System configuration &amp; info → 6.</b></p>
+    <p class="muted2">If a tag has not been seen for longer than the time you set (default 3 days), you get a notification once and the tag is marked with ⚠ in the list. Common reasons: the battery is empty, or the tag is somewhere no Android phones pass by. You set the time under <b>System configuration &amp; info → 5.</b></p>
   </div>
   <div class="card" lang="de">
     <h2><span class="ic">⚠</span> „Lange nicht gesehen“</h2>
-    <p class="muted2">Wurde ein Tag länger als die eingestellte Zeit nicht gesehen (Standard 3 Tage), bekommst du einmal eine Meldung, und der Tag ist in der Liste mit ⚠ markiert. Häufige Gründe: Die Batterie ist leer, oder der Tag liegt irgendwo, wo keine Android-Handys vorbeikommen. Die Zeit stellst du unter <b>Systemkonfiguration und Infos → 6.</b> ein.</p>
+    <p class="muted2">Wurde ein Tag länger als die eingestellte Zeit nicht gesehen (Standard 3 Tage), bekommst du einmal eine Meldung, und der Tag ist in der Liste mit ⚠ markiert. Häufige Gründe: Die Batterie ist leer, oder der Tag liegt irgendwo, wo keine Android-Handys vorbeikommen. Die Zeit stellst du unter <b>Systemkonfiguration und Infos → 5.</b> ein.</p>
   </div>
   </div>
 
@@ -124,7 +116,6 @@
       <li><b>Unlock encryption</b> <span class="pill">required</span><span class="muted2">Enter your phone's screen lock on Google's page — this lets your phone decrypt locations. Without it the map stays empty.</span></li>
       <li><b>Turn on background checking</b><span class="muted2">The app checks every 15 min or more and saves each location, using almost no battery.</span></li>
       <li><b>Sync to Google Drive</b> <span class="pill">recommended</span><span class="muted2">Default mode auto-saves to your Drive, so a new phone gets your history back automatically.</span></li>
-      <li><b>Allow the battery check</b> <span class="pill">optional</span><span class="muted2">Lets the app read the battery of tags near you via Bluetooth.</span></li>
     </ol>
   </div>
   <div class="card" lang="de">
@@ -134,17 +125,16 @@
       <li><b>Verschlüsselung entsperren</b> <span class="pill">nötig</span><span class="muted2">Gib auf Googles Seite die Bildschirmsperre deines Handys ein – damit kann dein Handy die Standorte entschlüsseln. Ohne diesen Schritt bleibt die Karte leer.</span></li>
       <li><b>Abfrage im Hintergrund einschalten</b><span class="muted2">Die App fragt alle 15 Min. oder seltener ab und speichert jeden Standort, bei kaum Akkuverbrauch.</span></li>
       <li><b>Mit Google Drive synchronisieren</b> <span class="pill">empfohlen</span><span class="muted2">Der Standardmodus sichert automatisch in dein Drive, ein neues Handy bekommt den Verlauf so automatisch zurück.</span></li>
-      <li><b>Akku-Prüfung erlauben</b> <span class="pill">optional</span><span class="muted2">Damit liest die App per Bluetooth den Akku der Tags in deiner Nähe.</span></li>
     </ol>
   </div>
 
   <div class="card" lang="en">
     <h2><span class="ic">★</span> What you can do</h2>
-    <p class="muted2">• See the full route for Today, 2 days, 7 days, 30 days, a year, or any dates &nbsp; • Replay the trip &nbsp; • Ring a tag (and stop it), or ring all at once &nbsp; • Choose colourful or simple tag symbols and Zönose or classic buttons &nbsp; • Get battery and “not seen” warnings &nbsp; • Export CSV/GPX for the police &nbsp; • Lock the app with a password &nbsp; • Switch between OpenStreetMap, Google Maps &amp; satellite &nbsp; • Switch between German and English.</p>
+    <p class="muted2">• See the full route for Today, 2 days, 7 days, 30 days, a year, or any dates &nbsp; • Replay the trip &nbsp; • Ring a tag (and stop it), or ring all at once &nbsp; • Choose colourful or simple tag symbols and Zönose or classic buttons &nbsp; • Get “not seen” warnings &nbsp; • Export CSV/GPX for the police &nbsp; • Lock the app with a password &nbsp; • Switch between OpenStreetMap, Google Maps &amp; satellite &nbsp; • Switch between German and English.</p>
   </div>
   <div class="card" lang="de">
     <h2><span class="ic">★</span> Was du damit machen kannst</h2>
-    <p class="muted2">• Ganze Route für heute, 2 Tage, 7 Tage, 30 Tage, ein Jahr oder einen beliebigen Zeitraum &nbsp; • Fahrt abspielen &nbsp; • Tag klingeln lassen (und stoppen) oder alle auf einmal &nbsp; • Bunte oder einfache Tag-Symbole, Zönose- oder klassische Knöpfe &nbsp; • Warnungen zu Akku und „lange nicht gesehen“ &nbsp; • CSV/GPX für die Polizei exportieren &nbsp; • App mit Passwort sperren &nbsp; • Zwischen OpenStreetMap, Google Maps &amp; Satellit wechseln &nbsp; • Zwischen Deutsch und Englisch wechseln.</p>
+    <p class="muted2">• Ganze Route für heute, 2 Tage, 7 Tage, 30 Tage, ein Jahr oder einen beliebigen Zeitraum &nbsp; • Fahrt abspielen &nbsp; • Tag klingeln lassen (und stoppen) oder alle auf einmal &nbsp; • Bunte oder einfache Tag-Symbole, Zönose- oder klassische Knöpfe &nbsp; • Warnung „lange nicht gesehen“ &nbsp; • CSV/GPX für die Polizei exportieren &nbsp; • App mit Passwort sperren &nbsp; • Zwischen OpenStreetMap, Google Maps &amp; Satellit wechseln &nbsp; • Zwischen Deutsch und Englisch wechseln.</p>
   </div>
 
   <div class="card">

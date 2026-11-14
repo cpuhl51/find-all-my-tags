@@ -364,14 +364,6 @@ def devices_json(interval_minutes: int, backup_enabled: bool, parked: bool = Fal
     if active:
         # Bei Google entfernte Tags (z. B. neu hinzugefügt) nicht doppelt zeigen
         devices = [d for d in devices if d["id"] in active]
-    try:
-        from server import battery
-        bstate = battery.state()
-    except Exception:
-        bstate = {}
-    for d in devices:
-        b = bstate.get(d["id"])
-        d["battery"] = b if b else None
     return json.dumps({
         "devices": devices,
         "stale_hours": stale_hours(),
@@ -430,27 +422,6 @@ def demo():
     manage.demo()
 
 
-# ---------- Akkustand per Bluetooth ----------
-
-def ble_ingest(frames_json: str, wide: bool = False) -> str:
-    """frames_json = JSON-Liste der beim Scan gesehenen 0xFEAA-Service-Daten (Hex).
-    Gibt JSON-Liste der Tags zurück, deren Akku neu auf niedrig/kritisch gefallen ist."""
-    from server import battery, db
-    frames = json.loads(frames_json or "[]")
-    alerts = battery.ingest(frames, wide=bool(wide))
-    names = {d["id"]: d["name"] for d in db.get_devices()}
-    for a in alerts:
-        a["name"] = names.get(a["id"], "Tag")
-    _save_status(ble_last_scan=int(time.time()))
-    return json.dumps({"alerts": alerts, "matched": battery.last_matched, "frames": len(frames)} | battery.summary())
-
-
-def ble_known() -> int:
-    """Wie viele Tags wir per Bluetooth erkennen können (nach dem ersten Standortabruf)."""
-    from server import battery
-    return battery.known_count()
-
-
 # ---------- Warnung "lange nicht gesehen" ----------
 
 def stale_hours() -> int:
@@ -474,13 +445,8 @@ def stale_alerts() -> str:
     s = _load_status()
     told = s.get("stale_told", {})
     out = []
-    try:
-        from server import battery
-        seen = {k: v.get("seen_ts") or 0 for k, v in battery.state().items()}
-    except Exception:
-        seen = {}
     for d in _active_devices():
-        ts = max(d.get("last_ts") or 0, seen.get(d["id"], 0)) or None   # auch per Bluetooth gesehen zählt
+        ts = d.get("last_ts")
         if ts is None:
             continue
         if now - ts > h * 3600:
@@ -491,36 +457,6 @@ def stale_alerts() -> str:
             told.pop(d["id"], None)          # wieder gesehen: später erneut warnen dürfen
     _save_status(stale_told=told)
     return json.dumps(out)
-
-
-def ble_diag() -> str:
-    """Lesbarer Bericht über den letzten Bluetooth-Scan (zum Weiterschicken an den Entwickler)."""
-    from server import battery, db
-    d = battery.diag()
-    if not d:
-        return "Noch kein Bluetooth-Scan. Bitte zuerst \"Akku prüfen\" tippen."
-    names = {x["id"]: x["name"] for x in db.get_devices()}
-    s = _load_status()
-    lines = [f"Find All My Tags – Akku-Diagnose", f"Scan: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(d.get('ts', 0)))}"
-             f" · breite Suche: {'ja' if d.get('wide') else 'nein'} · Kandidaten: {d.get('candidates')}",
-             f"Letzte Google-Abfrage: {time.strftime('%Y-%m-%d %H:%M', time.localtime(s.get('last_run') or 0))}", "",
-             f"Empfangene Signale ({len(d.get('frames', []))}):"]
-    for f in d.get("frames", []):
-        lines.append(f"  Typ {f['type']}  Länge {f['len']}  EID {f['eid']}…")
-    lines += ["", f"Tags ({len(d.get('tags', {}))}), erkannt: {len(d.get('matched', []))}"]
-    for did, x in d.get("tags", {}).items():
-        lines.append(f"  {names.get(did, did[:8])}: Uhrstand von Google {'ja' if x['counter_anchor'] else 'nein'}"
-                     f" · genau {'ja' if x['exact'] else 'nein'}"
-                     f" · Schätzung {x['est_from_counter'] or '-'} / Kopplung {x['est_from_pair'] or '-'}"
-                     f"{' · ERKANNT' if did in d.get('matched', []) else ''}")
-        lines.append(f"      gekoppelt {x.get('pair') or '-'} · Schlüssel erstellt {x.get('created') or '-'}"
-                     f" · Berichte (Zeit, Uhr, Differenz): {x.get('samples') or '-'}")
-    known = set(d.get("tags", {}))
-    missing = [n for i, n in names.items() if i not in known]
-    if missing:
-        lines += ["", "Ohne Schlüssel (noch keine Google-Abfrage oder Fehler): " + ", ".join(missing)]
-    return "\n".join(lines)
-
 
 
 def _active_devices() -> list:

@@ -48,7 +48,7 @@ public class BatteryActivity extends Activity {
         root.removeAllViews();
         title(I18n.t("Very low battery use"));
         note(I18n.t("Tag Tracker is built to sip battery:\n"
-                + "• It uses NO GPS (positions come from Google's network). Location access is only used for the optional Bluetooth battery check.\n"
+                + "• It uses NO GPS (positions come from Google's network). Location access is only used for the “My location” map button.\n"
                 + "• It wakes only briefly every ") + TagApp.intervalMinutes(this) + I18n.t(" minutes, then sleeps.\n"
                 + "• It closes its network connection between checks.\n"
                 + "• Android (WorkManager) batches the checks at efficient moments."));

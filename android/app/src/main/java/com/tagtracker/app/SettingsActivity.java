@@ -57,11 +57,6 @@ public class SettingsActivity extends Activity {
         render();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
-        super.onRequestPermissionsResult(code, perms, results);
-        if (code == 31) render();
-    }
 
     private void render() {
         root.removeAllViews();
@@ -115,21 +110,22 @@ public class SettingsActivity extends Activity {
         boolean pausedTop = TagApp.prefs(this).getBoolean(TagApp.KEY_PAUSED, false);
         if (pausedTop) {
             info(I18n.t("⏸ Background tracking is STOPPED. No locations are being saved."));
-            bigButton(I18n.t("▶ Restart app (resume background tracking)"), 0xFF16A34A, v -> {
+            bigButton(I18n.t("▶ Restart background service"), 0xFF16A34A, v -> {
                 TagApp.prefs(this).edit().putBoolean(TagApp.KEY_PAUSED, false).apply();
                 PollWorker.schedule(this);
                 toast(I18n.t("Tracking resumed"));
                 render();
             });
         } else {
-            bigButton(I18n.t("⏹ Shut down the app completely"), 0xFFDC2626, v -> new AlertDialog.Builder(this)
+            bigButton(I18n.t("⏹ Shut down background service completely"), 0xFFDC2626, v -> new AlertDialog.Builder(this)
                     .setTitle(I18n.t("Shut down the app completely?"))
-                    .setMessage(I18n.t("No more locations, warnings or backups until you open the app and restart it. "
-                            + "Normally you don't need this – closing the app keeps it working in the background."))
+                    .setMessage(I18n.t("The app and its background service will be shut down. You will no longer get tag "
+                            + "locations or warnings. Saving location data (and with it the tags' location history) is off "
+                            + "until you turn the service back on manually with the green button in the settings."))
                     .setPositiveButton(I18n.t("Shut down"), (d, w) -> {
                         TagApp.prefs(this).edit().putBoolean(TagApp.KEY_PAUSED, true).apply();
                         PollWorker.stop(this);
-                        toast(I18n.t("App shut down. Open it again and tap Restart to resume."));
+                        toast(I18n.t("Background service shut down. Open the app and tap the green button to restart it."));
                         finishAffinity();
                     })
                     .setNegativeButton(I18n.t("Cancel"), null)
@@ -178,7 +174,7 @@ public class SettingsActivity extends Activity {
         note(I18n.t("The app checks Find Hub in the background with Android WorkManager (Google's battery-efficient "
                 + "scheduler) and saves every location. It uses almost no battery while idle: it only wakes for a "
                 + "few seconds per check, needs a network connection, and closes the connection in between. It uses "
-                + "no GPS (locations come from Google's network). Location access is only used for the optional Bluetooth battery check. "
+                + "no GPS (locations come from Google's network). Location access is only used for the “My location” map button. "
                 + "Android's minimum interval is 15 minutes; pick a longer one to use even less battery."));
         int interval = TagApp.intervalMinutes(this);
         info(I18n.t("Currently every ") + interval + I18n.t(" minutes."));
@@ -213,11 +209,11 @@ public class SettingsActivity extends Activity {
 
         note(I18n.t("Closing the app (swiping it away) does NOT stop tracking – it keeps checking and saving in "
                 + "the background, which is what you want."));
-        note(I18n.t("To stop it fully, use the red button at the top."));
+        note(I18n.t("To stop it fully, use the red button “Shut down background service completely” at the top."));
 
         heading(I18n.t("3. Storage & sync"));
-        note(I18n.t("Yes, your locations are kept twice: ALWAYS on the phone (that's what the map shows), and – if you "
-                + "want – as a BACKUP COPY in your Google Drive, so a new phone gets your history back.\n"
+        note(I18n.t("Your tags' locations can be stored in two places: ALWAYS on the phone (that's what the map shows), "
+                + "and – if you want – as a BACKUP COPY in your Google Drive, so a new phone gets your history back.\n"
                 + "You only need ONE of the two Drive options below:\n"
                 + "• A) Default folder ‘TagTracker’ (recommended, nothing to set up), or\n"
                 + "• B) your own Drive file (only if you want it in a particular place).\n"
@@ -253,12 +249,15 @@ public class SettingsActivity extends Activity {
             });
         }
 
-        info(I18n.t("B) Own Drive file (optional)"));
+        info(I18n.t("B) Your own file in Google Drive (for advanced users)"));
         if (autoDrive && DriveBackup.enabled(this))
             note(I18n.t("⚠ A and B are both on – that is not needed. One of them is enough; you can turn B off."));
-        note(I18n.t("— or use a CUSTOM file (any account / location) —\n"
-                + "In the picker, tap ☰ and choose GOOGLE DRIVE (not phone storage), pick a folder, and name it "
-                + "e.g. TagTracker-history.csv."));
+        note(I18n.t("Instead of the automatic folder from A, you choose ONE file yourself, e.g. in a particular folder or "
+                + "in another Google account. After every check the app writes the whole history into this file.\n"
+                + "How to: tap “Choose Google Drive file”. In the window that opens, tap ☰ (top left), choose "
+                + "“Google Drive” (not “Internal storage”), pick a folder and enter a file name, e.g. "
+                + "TagTracker-history.csv, then tap “Save”.\n"
+                + "If you use A, you don't need B."));
         if (DriveBackup.enabled(this)) {
             long last = TagApp.prefs(this).getLong(TagApp.KEY_LAST_BACKUP, 0);
             info(I18n.t("✓ Auto-syncing to your Drive file.") + (last > 0
@@ -294,30 +293,7 @@ public class SettingsActivity extends Activity {
             toast(I18n.t("Checking Find Hub…"));
         });
 
-        heading(I18n.t("5. Tag batteries (Bluetooth)"));
-        note(I18n.t("Tags send their battery level (normal / low / critical) over Bluetooth. The app can only read it "
-                + "when a tag is near this phone – then you get a notification if a battery gets low. "
-                + "Exact percentages are not sent by the tags. Run “Check for locations now” once first."));
-        if (!BleBattery.hasPermissions(this)) {
-            button(I18n.t("Allow Bluetooth battery check"), v -> requestPermissions(BleBattery.neededPermissions(), 31));
-        } else {
-            info(I18n.t("✓ Battery check runs whenever you open the app."));
-            button(I18n.t("Show battery diagnostics"), v -> showBatteryDiag());
-            if (BleBattery.canScanInBackground(this)) {
-                info(I18n.t("✓ Also checked in the background with every location check."));
-            } else {
-                note(I18n.t("To also check in the background, set location access for this app to “Allow all the time”."));
-                button(I18n.t("Open app permissions"), v -> {
-                    try {
-                        startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                android.net.Uri.fromParts("package", getPackageName(), null)));
-                    } catch (Exception ignored) {
-                    }
-                });
-            }
-        }
-
-        heading(I18n.t("6. Warning: tag not seen for a long time"));
+        heading(I18n.t("5. Warning: tag not seen for a long time"));
         note(I18n.t("If a tag has not been seen for longer than this, you get a notification once – often a sign of an "
                 + "empty battery or a lost tag. The tag is also marked with ⚠ in the list."));
         int stale = TagApp.prefs(this).getInt("stale_hours", 72);
@@ -335,7 +311,7 @@ public class SettingsActivity extends Activity {
         }
         root.addView(rowS);
 
-        heading(I18n.t("7. App lock (this phone only)"));
+        heading(I18n.t("6. App lock (this phone only)"));
         note(I18n.t("Protect the app with a password so no one who picks up your phone can open your tracker. "
                 + "The password and hint are stored ONLY on this phone – never sent to Google or Drive, so they "
                 + "can't be recovered from anywhere else. If you forget it and the hint doesn't help, reinstall the app."));
@@ -431,39 +407,6 @@ public class SettingsActivity extends Activity {
         sc.addView(tv);
         new AlertDialog.Builder(this).setTitle(I18n.t("Legal, disclaimer & privacy"))
                 .setView(sc).setPositiveButton(I18n.t("Close"), null).show();
-    }
-
-    /** Bericht über den letzten Bluetooth-Scan anzeigen und zum Weiterschicken teilen. */
-    private void showBatteryDiag() {
-        new Thread(() -> {
-            String txt;
-            try {
-                txt = TagApp.py(this).callAttr("ble_diag").toString();
-            } catch (Exception e) {
-                txt = "Fehler: " + e.getMessage();
-            }
-            final String report = txt;
-            runOnUiThread(() -> {
-                TextView tv = new TextView(this);
-                tv.setText(report);
-                tv.setTextIsSelectable(true);
-                tv.setTypeface(android.graphics.Typeface.MONOSPACE);
-                tv.setTextSize(11);
-                int pad = dp(16);
-                tv.setPadding(pad, pad, pad, pad);
-                android.widget.ScrollView sv = new android.widget.ScrollView(this);
-                sv.addView(tv);
-                new AlertDialog.Builder(this)
-                        .setTitle(I18n.t("Battery diagnostics"))
-                        .setView(sv)
-                        .setPositiveButton(I18n.t("Share"), (d, w) -> {
-                            Intent i = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report);
-                            startActivity(Intent.createChooser(i, I18n.t("Share")));
-                        })
-                        .setNegativeButton(I18n.t("Close"), null)
-                        .show();
-            });
-        }).start();
     }
 
     private void showAppLockDialog() {

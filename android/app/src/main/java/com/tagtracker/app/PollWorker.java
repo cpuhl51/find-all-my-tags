@@ -57,13 +57,6 @@ public class PollWorker extends Worker {
             }
         } catch (Exception ignored) {
         }
-        // Akkustand: kurzer Bluetooth-Scan, nur wenn "Standort immer erlauben" gewährt ist.
-        if (BleBattery.canScanInBackground(ctx)) {
-            try {
-                BleBattery.scanAndUpdate(ctx, 8000, false);
-            } catch (Exception ignored) {
-            }
-        }
         boolean drive = DriveBackup.enabled(ctx)
                 || TagApp.prefs(ctx).getBoolean(TagApp.KEY_DRIVE_AUTO, false);
         String when = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)

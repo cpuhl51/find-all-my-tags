@@ -1,6 +1,20 @@
 {
-  "version": "1.7.0",
+  "version": "1.8.0",
   "verlauf": [
+    {
+      "version": "1.8.0",
+      "datum": "2026-11-14",
+      "aenderungen": [
+        "Akku-Prüfung per Bluetooth entfernt (brachte keinen Mehrwert), dafür keine Bluetooth-Berechtigung mehr",
+        "Knöpfe heißen jetzt „Hintergrunddienst vollständig beenden“ und „Hintergrunddienst wieder starten“",
+        "Texte zur Speicherung und zur eigenen Drive-Datei (B) klarer"
+      ],
+      "aenderungen_en": [
+        "Bluetooth battery check removed (it added no value), so no Bluetooth permission any more",
+        "Buttons now read “Shut down background service completely” and “Restart background service”",
+        "Clearer texts on storage and on your own Drive file (B)"
+      ]
+    },
     {
       "version": "1.7.0",
       "datum": "2026-11-14",

@@ -12,7 +12,6 @@ import android.os.Build;
 final class Notify {
     private static final String CHANNEL = "sync";
     private static final String CHANNEL_ALERT = "theft";
-    private static final String CHANNEL_BATTERY = "battery";
     private static final String CHANNEL_STALE = "stale";
     private static final int ID = 1;
 
@@ -37,12 +36,6 @@ final class Notify {
                 NotificationChannel ch = new NotificationChannel(CHANNEL_STALE, I18n.t("Tag not seen"),
                         NotificationManager.IMPORTANCE_DEFAULT);
                 ch.setDescription(I18n.t("Tells you when a tag has not been seen for a long time"));
-                nm.createNotificationChannel(ch);
-            }
-            if (nm.getNotificationChannel(CHANNEL_BATTERY) == null) {
-                NotificationChannel ch = new NotificationChannel(CHANNEL_BATTERY, I18n.t("Tag battery"),
-                        NotificationManager.IMPORTANCE_DEFAULT);
-                ch.setDescription(I18n.t("Tells you when a tag's battery gets low"));
                 nm.createNotificationChannel(ch);
             }
         }
@@ -98,34 +91,6 @@ final class Notify {
             nm.notify(ID, n);
         } catch (SecurityException ignored) {
             // POST_NOTIFICATIONS not granted (Android 13+); silently skip.
-        }
-    }
-
-    /** Meldung, wenn der Akku eines Tags auf niedrig (2) oder kritisch (3) fällt. */
-    static void batteryAlert(Context ctx, String deviceId, String name, int level) {
-        NotificationManager nm = mgr(ctx);
-        if (nm == null) return;
-        int rc = Math.abs(deviceId.hashCode());
-        PendingIntent open = PendingIntent.getActivity(ctx, rc, new Intent(ctx, MainActivity.class),
-                PendingIntent.FLAG_IMMUTABLE);
-        Notification.Builder b = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                ? new Notification.Builder(ctx, CHANNEL_BATTERY)
-                : new Notification.Builder(ctx);
-        boolean crit = level >= 3;
-        String title = (crit ? "🔴 " : "🟡 ") + name + ": "
-                + I18n.t(ctx, crit ? I18n.t("battery critically low") : I18n.t("battery low"));
-        String text = I18n.t(ctx, crit ? I18n.t("Replace the battery soon, or the tag will stop sending its location.")
-                : I18n.t("The battery is getting weak. Have a spare ready."));
-        Notification n = b.setContentTitle(title)
-                .setContentText(text)
-                .setStyle(new Notification.BigTextStyle().bigText(text))
-                .setSmallIcon(R.drawable.ic_notify)
-                .setContentIntent(open)
-                .setAutoCancel(true)
-                .build();
-        try {
-            nm.notify(2000 + rc % 1000, n);
-        } catch (SecurityException ignored) {
         }
     }
 

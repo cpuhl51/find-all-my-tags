@@ -145,11 +145,6 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void checkBatteries() {
-            runOnUiThread(MainActivity.this::checkBatteries);
-        }
-
-        @JavascriptInterface
         public void openLicense() {
             runOnUiThread(() -> startActivity(new Intent(MainActivity.this, HelpActivity.class)
                     .putExtra(HelpActivity.EXTRA_PAGE, "info.html")));
@@ -303,7 +298,6 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         menu.add(0, 1, 0, I18n.t(this, "Check for locations now"));
-        menu.add(0, 7, 0, I18n.t(this, "Check tag batteries (Bluetooth)"));
         menu.add(0, 2, 0, I18n.t(this, "Refresh"));
         menu.add(0, 3, 0, I18n.t(this, "Setup & settings"));
         menu.add(0, 6, 0, I18n.t(this, "Phone battery & activity"));
@@ -336,9 +330,6 @@ public class MainActivity extends Activity {
             case 6:
                 startActivity(new Intent(this, BatteryActivity.class));
                 return true;
-            case 7:
-                checkBatteries();
-                return true;
             case 8:
                 switchLanguage(I18n.de(this) ? "en" : "de");
                 return true;
@@ -353,55 +344,15 @@ public class MainActivity extends Activity {
         if (TagApp.hasAppLock(this) && !TagApp.appUnlocked) {
             startActivity(new Intent(this, LockActivity.class));
         }
-        // Akkustand still im Hintergrund lesen, wenn Bluetooth-Scan schon erlaubt ist.
-        if (BleBattery.hasPermissions(this)) runBatteryScan(false);
     }
 
-    private static final int REQ_BLE = 21;
     private static final int REQ_GEO = 22;
     private android.webkit.GeolocationPermissions.Callback pendingGeo;
     private String pendingGeoOrigin;
 
-    /** Menüpunkt "Akkustand prüfen": fragt bei Bedarf nach der Berechtigung und scannt. */
-    void checkBatteries() {
-        if (!BleBattery.hasPermissions(this)) {
-            Toast.makeText(this, I18n.t(this, "Bluetooth access is needed to read the batteries of tags near you."),
-                    Toast.LENGTH_LONG).show();
-            requestPermissions(BleBattery.neededPermissions(), REQ_BLE);
-            return;
-        }
-        runBatteryScan(true);
-    }
-
-    private void runBatteryScan(boolean userAsked) {
-        if (userAsked) Toast.makeText(this, I18n.t(this, "Searching for tags nearby (10 s)…"), Toast.LENGTH_SHORT).show();
-        new Thread(() -> {
-            int known = 0;
-            try {
-                known = TagApp.py(this).callAttr("ble_known").toInt();
-            } catch (Exception ignored) {
-            }
-            int seen = BleBattery.scanAndUpdate(this, userAsked ? 10000 : 6000, userAsked);
-            final int k = known;
-            runOnUiThread(() -> {
-                if (seen > 0) web.evaluateJavascript("window.reloadDevices && window.reloadDevices()", null);
-                if (!userAsked) return;
-                String msg;
-                if (seen < 0) msg = I18n.t(this, "Bluetooth is off or not allowed.");
-                else if (k == 0) msg = I18n.t(this, "Run \"Check for locations now\" once first, then try again.");
-                else if (seen == 0) msg = I18n.t(this, "No tag in Bluetooth range right now.");
-                else if (BleBattery.lastMatched == 0) msg = seen + I18n.t(this, " Find Hub signal(s) received, but none matched one of your ")
-                        + BleBattery.lastKnown + I18n.t(this, " prepared tags yet. Bring a tag right next to the phone and try again.");
-                else msg = BleBattery.lastMatched + I18n.t(this, " tag(s) nearby recognised – battery updated.");
-                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-            });
-        }).start();
-    }
-
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
-        if (code == REQ_BLE && BleBattery.hasPermissions(this)) runBatteryScan(true);
         if (code == REQ_GEO && pendingGeo != null) {
             boolean ok = checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == android.content.pm.PackageManager.PERMISSION_GRANTED;
