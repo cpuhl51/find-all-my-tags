@@ -139,6 +139,12 @@ final class I18n {
               "Akkustand aktualisiert.");
         m.put("Bluetooth access is needed to read the batteries of tags near you.",
               "Für den Akkustand der Tags in deiner Nähe braucht die App Bluetooth-Zugriff.");
+        m.put("Find tags nearby (Bluetooth)",
+              "Tags in der Nähe suchen (Bluetooth)");
+        m.put("Bluetooth access is needed to see which tags are near you.",
+              "Damit die App sieht, welche Tags in deiner Nähe sind, braucht sie Bluetooth-Zugriff.");
+        m.put(" tag(s) nearby – marked with 📶.",
+              " Tag(s) in der Nähe – mit 📶 markiert.");
         m.put("Bluetooth is off or not allowed.",
               "Bluetooth ist aus oder nicht erlaubt.");
         m.put("Cancel",
@@ -331,8 +337,8 @@ final class I18n {
               "Mit Drive synchronisiert");
         m.put("Tag Tracker",
               "Find All My Tags");
-        m.put("Tag Tracker is built to sip battery:\n• It uses NO GPS (positions come from Google's network). Location access is only used for the “My location” map button.\n• It wakes only briefly every ",
-              "Find All My Tags ist auf sparsamen Akkuverbrauch ausgelegt:\n• Kein GPS (die Positionen kommen aus dem Google-Netzwerk). Standortzugriff dient nur dem Kartenknopf „Mein Standort“.\n• Die App wacht nur alle ");
+        m.put("Tag Tracker is built to sip battery:\n• It uses NO GPS (positions come from Google's network). Location access is only used for the “My location” map button and to see tags nearby via Bluetooth.\n• It wakes only briefly every ",
+              "Find All My Tags ist auf sparsamen Akkuverbrauch ausgelegt:\n• Kein GPS (die Positionen kommen aus dem Google-Netzwerk). Standortzugriff dient nur dem Kartenknopf „Mein Standort“ und dem Erkennen von Tags in der Nähe per Bluetooth.\n• Die App wacht nur alle ");
         m.put("Tag Tracker is running",
               "Find All My Tags läuft");
         m.put("Tag Tracker setup",
@@ -343,8 +349,8 @@ final class I18n {
               "Tags senden ihren Akkustand (normal / niedrig / kritisch) per Bluetooth. Die App kann ihn nur lesen, wenn ein Tag in der Nähe dieses Handys ist – dann bekommst du eine Meldung, sobald ein Akku schwach wird. Genaue Prozentwerte senden die Tags nicht. Führe zuerst einmal „Jetzt Standorte abfragen“ aus.");
         m.put("Tells you when a tag's battery gets low",
               "Meldet dir, wenn der Akku eines Tags schwach wird");
-        m.put("The app checks Find Hub in the background with Android WorkManager (Google's battery-efficient scheduler) and saves every location. It uses almost no battery while idle: it only wakes for a few seconds per check, needs a network connection, and closes the connection in between. It uses no GPS (locations come from Google's network). Location access is only used for the “My location” map button. Android's minimum interval is 15 minutes; pick a longer one to use even less battery.",
-              "Die App fragt Find Hub im Hintergrund über Android WorkManager ab (Googles stromsparender Zeitplaner) und speichert jeden Standort. Im Ruhezustand braucht sie kaum Akku: Sie wacht pro Abfrage nur ein paar Sekunden auf, braucht eine Internetverbindung und trennt sie dazwischen wieder. Kein GPS (die Standorte kommen aus dem Google-Netzwerk). Standortzugriff dient nur dem Kartenknopf „Mein Standort“. Android erlaubt mindestens 15 Minuten Abstand; ein längeres Intervall spart noch mehr Akku.");
+        m.put("The app checks Find Hub in the background with Android WorkManager (Google's battery-efficient scheduler) and saves every location. It uses almost no battery while idle: it only wakes for a few seconds per check, needs a network connection, and closes the connection in between. It uses no GPS (locations come from Google's network). Location access is only used for the “My location” map button and to see tags nearby via Bluetooth. Android's minimum interval is 15 minutes; pick a longer one to use even less battery.",
+              "Die App fragt Find Hub im Hintergrund über Android WorkManager ab (Googles stromsparender Zeitplaner) und speichert jeden Standort. Im Ruhezustand braucht sie kaum Akku: Sie wacht pro Abfrage nur ein paar Sekunden auf, braucht eine Internetverbindung und trennt sie dazwischen wieder. Kein GPS (die Standorte kommen aus dem Google-Netzwerk). Standortzugriff dient nur dem Kartenknopf „Mein Standort“ und dem Erkennen von Tags in der Nähe per Bluetooth. Android erlaubt mindestens 15 Minuten Abstand; ein längeres Intervall spart noch mehr Akku.");
         m.put("The battery is getting weak. Have a spare ready.",
               "Die Batterie wird schwach. Halte eine Ersatzbatterie bereit.");
         m.put("Theft / movement alerts",

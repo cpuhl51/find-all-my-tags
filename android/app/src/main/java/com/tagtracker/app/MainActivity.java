@@ -145,6 +145,11 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void checkNearby() {
+            runOnUiThread(MainActivity.this::checkNearby);
+        }
+
+        @JavascriptInterface
         public void openLicense() {
             runOnUiThread(() -> startActivity(new Intent(MainActivity.this, HelpActivity.class)
                     .putExtra(HelpActivity.EXTRA_PAGE, "info.html")));
@@ -298,6 +303,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         menu.add(0, 1, 0, I18n.t(this, "Check for locations now"));
+        menu.add(0, 7, 0, I18n.t(this, "Find tags nearby (Bluetooth)"));
         menu.add(0, 2, 0, I18n.t(this, "Refresh"));
         menu.add(0, 3, 0, I18n.t(this, "Setup & settings"));
         menu.add(0, 6, 0, I18n.t(this, "Phone battery & activity"));
@@ -330,6 +336,9 @@ public class MainActivity extends Activity {
             case 6:
                 startActivity(new Intent(this, BatteryActivity.class));
                 return true;
+            case 7:
+                checkNearby();
+                return true;
             case 8:
                 switchLanguage(I18n.de(this) ? "en" : "de");
                 return true;
@@ -344,6 +353,61 @@ public class MainActivity extends Activity {
         if (TagApp.hasAppLock(this) && !TagApp.appUnlocked) {
             startActivity(new Intent(this, LockActivity.class));
         }
+        // Tags in der Nähe still per Bluetooth suchen, solange die App offen ist (wenn erlaubt).
+        nearbyTick.run();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        nearbyHandler.removeCallbacks(nearbyTick);
+    }
+
+    private final android.os.Handler nearbyHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable nearbyTick = new Runnable() {
+        @Override
+        public void run() {
+            nearbyHandler.removeCallbacks(this);
+            if (BleNearby.hasPermissions(MainActivity.this)) runNearbyScan(false);
+            nearbyHandler.postDelayed(this, 5 * 60 * 1000L);
+        }
+    };
+
+    private static final int REQ_BLE = 21;
+
+    /** Menüpunkt "Tags in der Nähe suchen": fragt bei Bedarf nach der Berechtigung und scannt. */
+    void checkNearby() {
+        if (!BleNearby.hasPermissions(this)) {
+            Toast.makeText(this, I18n.t(this, "Bluetooth access is needed to see which tags are near you."),
+                    Toast.LENGTH_LONG).show();
+            requestPermissions(BleNearby.neededPermissions(), REQ_BLE);
+            return;
+        }
+        runNearbyScan(true);
+    }
+
+    private void runNearbyScan(boolean userAsked) {
+        if (userAsked) Toast.makeText(this, I18n.t(this, "Searching for tags nearby (10 s)…"), Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            int known = 0;
+            try {
+                known = TagApp.py(this).callAttr("ble_known").toInt();
+            } catch (Exception ignored) {
+            }
+            int seen = BleNearby.scanAndUpdate(this, userAsked ? 10000 : 6000, userAsked);
+            final int k = known;
+            runOnUiThread(() -> {
+                if (seen > 0 && web != null) web.evaluateJavascript("window.reloadDevices && window.reloadDevices()", null);
+                if (!userAsked) return;
+                String msg;
+                if (seen < 0) msg = I18n.t(this, "Bluetooth is off or not allowed.");
+                else if (k == 0) msg = I18n.t(this, "Run \"Check for locations now\" once first, then try again.");
+                else if (seen == 0) msg = I18n.t(this, "No tag in Bluetooth range right now.");
+                else if (BleNearby.lastMatched == 0) msg = I18n.t(this, "Bluetooth signals found, but none could be matched to your tags yet.");
+                else msg = BleNearby.lastMatched + I18n.t(this, " tag(s) nearby – marked with 📶.");
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+            });
+        }).start();
     }
 
     private static final int REQ_GEO = 22;
@@ -353,6 +417,7 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
+        if (code == REQ_BLE && BleNearby.hasPermissions(this)) runNearbyScan(true);
         if (code == REQ_GEO && pendingGeo != null) {
             boolean ok = checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == android.content.pm.PackageManager.PERMISSION_GRANTED;

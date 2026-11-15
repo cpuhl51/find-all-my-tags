@@ -1,6 +1,18 @@
 {
-  "version": "1.8.1",
+  "version": "1.9.0",
   "verlauf": [
+    {
+      "version": "1.9.0",
+      "datum": "2026-11-15",
+      "aenderungen": [
+        "📶 „In der Nähe“ ist zurück: Tags in Bluetooth-Reichweite werden markiert (ohne Akku-Anzeige)",
+        "Neuer Menüpunkt „Tags in der Nähe suchen (Bluetooth)“"
+      ],
+      "aenderungen_en": [
+        "📶 “Nearby” is back: tags in Bluetooth range are marked (without battery level)",
+        "New menu item “Find tags nearby (Bluetooth)”"
+      ]
+    },
     {
       "version": "1.8.1",
       "datum": "2026-11-14",

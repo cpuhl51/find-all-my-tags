@@ -285,7 +285,7 @@
   function statusOf(d) {
     if (seenTs(d) == null) return { key: 'stale', text: t('never seen') };
     if (isStale(d)) return { key: 'stale', text: t('not seen for {n}', { n: sinceText(seenTs(d)) }) };
-    return { key: 'ok', text: '' };
+    return { key: isNear(d) ? 'near' : 'ok', text: '' };
   }
   function sinceText(ts) {
     const h = (Date.now() / 1000 - ts) / 3600;
@@ -293,7 +293,7 @@
   }
   function labelHtml(d) {
     const st = statusOf(d);
-    const icon = st.key === 'stale' ? '⚠ ' : '✓ ';
+    const icon = st.key === 'stale' ? '⚠ ' : st.key === 'near' ? '📶 ' : '✓ ';
     return `<span class="lab" data-id="${esc(d.id)}">${icon}${esc(d.name)}</span>` + (st.text ? `<span class="st">${esc(st.text)}</span>` : '');
   }
   // Tipp auf die Beschriftung zählt wie ein Tipp auf das Symbol
@@ -303,7 +303,10 @@
   }, true);
   map.on('zoomend', () => renderMarkers());
   map.on('resize', () => renderMarkers());
-  const seenTs = (d) => d.last_ts || null;
+  // Zuletzt gesehen = neuester Wert aus Google-Standort und eigenem Bluetooth-Scan der App
+  const seenTs = (d) => Math.max(d.last_ts || 0, d.near_ts || 0) || null;
+  const NEAR_SEC = 15 * 60;
+  const isNear = (d) => !!(d.near_ts && Date.now() / 1000 - d.near_ts < NEAR_SEC);
   const isStale = (d) => staleHours > 0 && seenTs(d) != null && Date.now() / 1000 - seenTs(d) > staleHours * 3600;
 
   function renderOverview() {
@@ -312,10 +315,11 @@
     const list = devices.slice().sort((a, b) => (seenTs(b) || 0) - (seenTs(a) || 0));
     el.innerHTML = `<div class="ov-head"><b>${esc(t('All tags'))} (${devices.length})</b></div>`
       + '<div class="ov">' + list.map((d) => {
-        const seen = seenTs(d) != null ? ago(seenTs(d)) : t('never');
-        const st = isStale(d) || seenTs(d) == null;
+        const near = isNear(d);
+        const seen = near ? '📶 ' + t('nearby') : (seenTs(d) != null ? ago(seenTs(d)) : t('never'));
+        const st = !near && (isStale(d) || seenTs(d) == null);
         return `<button type="button" class="ov-row${d.id === focusId ? ' on' : ''}${st ? ' stale' : ''}" data-id="${esc(d.id)}">${iconSvg(d, 20)}`
-          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen">${st ? '⚠ ' : ''}${esc(seen)}</span></span>` + `</button>`;
+          + `<span class="ov-main"><span class="ov-name">${esc(d.name)}</span><span class="ov-seen${near ? ' near' : ''}">${st ? '⚠ ' : ''}${esc(seen)}</span></span>` + `</button>`;
       }).join('') + '</div>';
     el.querySelectorAll('.ov-row').forEach((r) => r.addEventListener('click', () => select(r.dataset.id)));
   }
@@ -348,7 +352,8 @@
     $('historyBox').hidden = !(d && historyOn);
     if (!d) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    const seen = (d.last_ts != null
+    const seen = (isNear(d) ? `<div class="near">📶 ${esc(t('Nearby – just recognised by Bluetooth ({ago})', { ago: ago(d.near_ts) }))}</div>` : '')
+      + (d.last_ts != null
         ? `<div>${esc(t('Last location from Google: {t}', { t: fmt(d.last_ts) }))} <span class="muted">(${ago(d.last_ts)})</span></div>`
         : `<div class="muted">${esc(t('No locations stored yet.'))}</div>`);
     el.innerHTML = `<div class="d-head">${iconSvg(d, 22)}<b>${esc(d.name)}</b><button type="button" class="icon" id="dClose">✕</button></div>`

@@ -11,7 +11,12 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- For the "synced" status notification (Android 13+); optional, app works without it. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Nur für den Kartenknopf "Mein Standort" -->
+    <!-- Tags in der Nähe per Bluetooth erkennen (📶) -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <!-- Kartenknopf "Mein Standort"; Android verlangt den Standort auch für den Bluetooth-Scan -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 

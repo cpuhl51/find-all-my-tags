@@ -364,6 +364,14 @@ def devices_json(interval_minutes: int, backup_enabled: bool, parked: bool = Fal
     if active:
         # Bei Google entfernte Tags (z. B. neu hinzugefügt) nicht doppelt zeigen
         devices = [d for d in devices if d["id"] in active]
+    try:
+        from server import nearby
+        nstate = nearby.state()
+    except Exception:
+        nstate = {}
+    for d in devices:
+        n = nstate.get(d["id"]) or {}
+        d["near_ts"] = n.get("seen_ts")   # zuletzt per Bluetooth in der Nähe gesehen
     return json.dumps({
         "devices": devices,
         "stale_hours": stale_hours(),
@@ -422,6 +430,24 @@ def demo():
     manage.demo()
 
 
+# ---------- Tags in der Nähe per Bluetooth ----------
+
+def ble_ingest(frames_json: str, wide: bool = False) -> str:
+    """frames_json = JSON-Liste der beim Scan gesehenen 0xFEAA-Service-Daten (Hex).
+    Merkt sich, welche eigenen Tags gerade in der Nähe sind."""
+    from server import nearby, db
+    frames = json.loads(frames_json or "[]")
+    nearby.ingest(frames, wide=bool(wide))
+    _save_status(ble_last_scan=int(time.time()))
+    return json.dumps({"matched": nearby.last_matched, "frames": len(frames)} | nearby.summary())
+
+
+def ble_known() -> int:
+    """Wie viele Tags wir per Bluetooth erkennen können (nach dem ersten Standortabruf)."""
+    from server import nearby
+    return nearby.known_count()
+
+
 # ---------- Warnung "lange nicht gesehen" ----------
 
 def stale_hours() -> int:
@@ -445,8 +471,13 @@ def stale_alerts() -> str:
     s = _load_status()
     told = s.get("stale_told", {})
     out = []
+    try:
+        from server import nearby
+        seen = {k: v.get("seen_ts") or 0 for k, v in nearby.state().items()}
+    except Exception:
+        seen = {}
     for d in _active_devices():
-        ts = d.get("last_ts")
+        ts = max(d.get("last_ts") or 0, seen.get(d["id"], 0)) or None   # auch per Bluetooth gesehen zählt
         if ts is None:
             continue
         if now - ts > h * 3600:

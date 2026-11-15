@@ -295,7 +295,45 @@ def locate(canonic_id: str, timeout: float = 45) -> list[dict]:
         with _dispatch_lock:
             _pending.pop(request_uuid, None)
 
-    return _decrypt(parse_device_update_protobuf(slot["result"]))
+    update = parse_device_update_protobuf(slot["result"])
+    try:
+        _remember_beacon(canonic_id, update)
+    except Exception as e:  # Nähe-Erkennung ist Zusatz, darf den Abruf nie stören
+        print(f"[finder] nearby anchor skipped: {type(e).__name__}")
+    return _decrypt(update)
+
+
+def _remember_beacon(canonic_id: str, device_update) -> None:
+    """Merkt Schlüssel + Uhrstand des Tags, damit nearby.py seine Funkrahmen erkennt."""
+    from NovaApi.ExecuteAction.LocateTracker.decrypt_locations import is_mcu_tracker, retrieve_identity_key
+    from . import nearby
+
+    registration = device_update.deviceMetadata.information.deviceRegistration
+    if is_mcu_tracker(registration):
+        return
+    reports = device_update.deviceMetadata.information.locationInformation.reports.recentLocationAndNetworkLocations
+    pairs = list(zip(reports.networkLocations, reports.networkLocationTimestamps))
+    if reports.HasField("recentLocation"):
+        pairs.append((reports.recentLocation, reports.recentLocationTimestamp))
+    best = None
+    samples = []
+    for loc, t in pairs:
+        counter = int(loc.geoLocation.deviceTimeOffset or 0)
+        if counter > 0:
+            samples.append([int(t.seconds), counter])
+            if best is None or int(t.seconds) > best[0]:
+                best = (int(t.seconds), counter)
+    try:
+        identity_key = retrieve_identity_key(registration)
+    except SystemExit:
+        return
+    pair = int(getattr(registration, "pairDate", 0) or 0)
+    try:
+        created = int(registration.encryptedUserSecrets.creationDate.seconds or 0)
+    except Exception:
+        created = 0
+    nearby.remember(canonic_id, identity_key, best[0] if best else 0, best[1] if best else 0,
+                     pair, created, sorted(samples)[-5:])
 
 
 def stop_listening() -> None:

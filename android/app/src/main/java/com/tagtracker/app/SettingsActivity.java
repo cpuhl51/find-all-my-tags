@@ -174,7 +174,7 @@ public class SettingsActivity extends Activity {
         note(I18n.t("The app checks Find Hub in the background with Android WorkManager (Google's battery-efficient "
                 + "scheduler) and saves every location. It uses almost no battery while idle: it only wakes for a "
                 + "few seconds per check, needs a network connection, and closes the connection in between. It uses "
-                + "no GPS (locations come from Google's network). Location access is only used for the “My location” map button. "
+                + "no GPS (locations come from Google's network). Location access is only used for the “My location” map button and to see tags nearby via Bluetooth. "
                 + "Android's minimum interval is 15 minutes; pick a longer one to use even less battery."));
         int interval = TagApp.intervalMinutes(this);
         info(I18n.t("Currently every ") + interval + I18n.t(" minutes."));
