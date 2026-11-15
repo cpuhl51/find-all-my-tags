@@ -19,6 +19,8 @@
     <!-- Kartenknopf "Mein Standort"; Android verlangt den Standort auch für den Bluetooth-Scan -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Dauerhafte Suche nach Tags in der Nähe, auch wenn die App zu ist -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="false"
@@ -71,6 +73,10 @@
 
         <receiver
             android:name=".RingReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".NearbyReceiver"
             android:exported="false" />
 
         <provider

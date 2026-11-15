@@ -305,7 +305,7 @@
   map.on('resize', () => renderMarkers());
   // Zuletzt gesehen = neuester Wert aus Google-Standort und eigenem Bluetooth-Scan der App
   const seenTs = (d) => Math.max(d.last_ts || 0, d.near_ts || 0) || null;
-  const NEAR_SEC = 15 * 60;
+  const NEAR_SEC = 3 * 60;   // die App sucht bei offener App jede Minute
   const isNear = (d) => !!(d.near_ts && Date.now() / 1000 - d.near_ts < NEAR_SEC);
   const isStale = (d) => staleHours > 0 && seenTs(d) != null && Date.now() / 1000 - seenTs(d) > staleHours * 3600;
 
@@ -381,6 +381,28 @@
     if (historyOn) $('histTitle').textContent = t('History of {name}', { name: d.name });
     if (d.last_lat != null) addressFor(d.last_lat, d.last_lon).then((a) => { const ae = $('addr'); if (ae && a) ae.textContent = '📍 ' + a; });
   }
+  // Zönose-Knopf: helles und dunkles Bild, CSS zeigt das passende
+  const btnLang = window.I18N && I18N.lang === 'de' ? 'de' : 'en';
+  const CLASSIC = {
+    verlauf: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/>',
+    orten: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+    klingeln: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    teilen: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
+  };
+  function picBtn(id, img, label, on) {
+    if (classicBtns()) {
+      return `<button type="button" id="${id}" class="cls${on ? ' on' : ''}" title="${esc(label)}">`
+        + `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CLASSIC[img]}</svg>`
+        + `<span>${esc(label)}</span></button>`;
+    }
+    return `<button type="button" id="${id}" class="${on ? 'on' : ''}" title="${esc(label)}" aria-label="${esc(label)}">`
+      + `<img class="lt" src="static/img/btn-${img}-${btnLang}-light.png" alt=""><img class="dk" src="static/img/btn-${img}-${btnLang}-dark.png" alt=""></button>`;
+  }
+
+  function staleText() {
+    return staleHours % 24 === 0 ? t('{n} days', { n: staleHours / 24 }) : t('{n} hours', { n: staleHours });
+  }
+
   function renderSync(b) {
     const el = $('sync');
     if (!el) return;
@@ -582,6 +604,8 @@
   }
   // Die App ruft das nach einem Bluetooth-Akku-Scan auf.
   window.reloadDevices = () => loadDevices().catch(console.error);
+  // „In der Nähe“ jede Minute auffrischen, solange die App sichtbar ist
+  if (NATIVE) setInterval(() => { if (!document.hidden) window.reloadDevices(); }, 60000);
   // Keine Aktualisierung im Minutentakt: neu geladen wird, wenn die Seite wieder sichtbar wird.
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadDevices().catch(console.error); });
 

@@ -57,6 +57,8 @@ public class PollWorker extends Worker {
             }
         } catch (Exception ignored) {
         }
+        // Dauerhafte Bluetooth-Suche (Tags in der Nähe) am Laufen halten, z. B. nach Neustart oder Update
+        BleNearby.startBackground(ctx);
         boolean drive = DriveBackup.enabled(ctx)
                 || TagApp.prefs(ctx).getBoolean(TagApp.KEY_DRIVE_AUTO, false);
         String when = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
@@ -81,6 +83,7 @@ public class PollWorker extends Worker {
                 .setConstraints(constraints())
                 .build();
         WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, req);
+        BleNearby.startBackground(ctx);
     }
 
     static void runNow(Context ctx) {
@@ -94,6 +97,7 @@ public class PollWorker extends Worker {
     static void stop(Context ctx) {
         WorkManager.getInstance(ctx).cancelUniqueWork(PERIODIC);
         WorkManager.getInstance(ctx).cancelUniqueWork(ONCE);
+        BleNearby.stopBackground(ctx);
         android.app.NotificationManager nm =
                 (android.app.NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm != null) nm.cancelAll();

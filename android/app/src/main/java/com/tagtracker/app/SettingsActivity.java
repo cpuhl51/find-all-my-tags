@@ -293,7 +293,35 @@ public class SettingsActivity extends Activity {
             toast(I18n.t("Checking Find Hub…"));
         });
 
-        heading(I18n.t("5. Warning: tag not seen for a long time"));
+        heading(I18n.t("5. Tags nearby (Bluetooth)"));
+        note(I18n.t("Your phone listens for your tags' Bluetooth signals all the time, in an energy-saving way. "
+                + "Tags within reach are marked with 📶 on the map and in the list. Run “Check for locations now” once first, "
+                + "so the app knows your tags."));
+        if (!BleNearby.hasPermissions(this)) {
+            button(I18n.t("Allow search for tags nearby"), v -> requestPermissions(BleNearby.neededPermissions(), 31));
+        } else {
+            info(I18n.t("✓ Searching while the app is open (every minute)."));
+            if (BleNearby.canScanInBackground(this)) {
+                info(I18n.t("✓ Also searching in the background when the app is closed."));
+            } else {
+                note(I18n.t("For the search to keep running when the app is closed, Android needs location access "
+                        + "“Allow all the time” for this app."));
+                button(I18n.t("Allow all the time"), v -> {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        requestPermissions(new String[]{android.Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 32);
+                    }
+                });
+                button(I18n.t("Open app permissions"), v -> {
+                    try {
+                        startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.fromParts("package", getPackageName(), null)));
+                    } catch (Exception ignored) {
+                    }
+                });
+            }
+        }
+
+        heading(I18n.t("6. Warning: tag not seen for a long time"));
         note(I18n.t("If a tag has not been seen for longer than this, you get a notification once – often a sign of an "
                 + "empty battery or a lost tag. The tag is also marked with ⚠ in the list."));
         int stale = TagApp.prefs(this).getInt("stale_hours", 72);
@@ -311,7 +339,7 @@ public class SettingsActivity extends Activity {
         }
         root.addView(rowS);
 
-        heading(I18n.t("6. App lock (this phone only)"));
+        heading(I18n.t("7. App lock (this phone only)"));
         note(I18n.t("Protect the app with a password so no one who picks up your phone can open your tracker. "
                 + "The password and hint are stored ONLY on this phone – never sent to Google or Drive, so they "
                 + "can't be recovered from anywhere else. If you forget it and the hint doesn't help, reinstall the app."));
@@ -546,6 +574,15 @@ public class SettingsActivity extends Activity {
         LinearLayout r = new LinearLayout(this);
         r.setOrientation(LinearLayout.HORIZONTAL);
         return r;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(code, perms, results);
+        if (code == 31 || code == 32) {
+            BleNearby.startBackground(this);
+            render();
+        }
     }
 
     private void heading(String text) {

@@ -548,6 +548,26 @@ final class I18n {
               "Hintergrunddienst beendet. Öffne die App und tippe auf den grünen Button, um ihn wieder zu starten.");
         m.put("To stop it fully, use the red button “Shut down background service completely” at the top.",
               "Ganz beenden kannst du ihn mit dem roten Button „Hintergrunddienst vollständig beenden“ ganz oben.");
+        m.put("5. Tags nearby (Bluetooth)",
+              "5. Tags in der Nähe (Bluetooth)");
+        m.put("Your phone listens for your tags' Bluetooth signals all the time, in an energy-saving way. Tags within reach are marked with 📶 on the map and in the list. Run “Check for locations now” once first, so the app knows your tags.",
+              "Dein Handy hört ständig und stromsparend auf die Bluetooth-Signale deiner Tags. Tags in Reichweite sind auf der Karte und in der Liste mit 📶 markiert. Führe zuerst einmal „Jetzt Standorte abfragen“ aus, damit die App deine Tags kennt.");
+        m.put("Allow search for tags nearby",
+              "Suche nach Tags in der Nähe erlauben");
+        m.put("✓ Searching while the app is open (every minute).",
+              "✓ Sucht, solange die App offen ist (jede Minute).");
+        m.put("✓ Also searching in the background when the app is closed.",
+              "✓ Sucht auch im Hintergrund, wenn die App zu ist.");
+        m.put("For the search to keep running when the app is closed, Android needs location access “Allow all the time” for this app.",
+              "Damit die Suche auch bei geschlossener App läuft, braucht Android für diese App den Standortzugriff „Immer zulassen“.");
+        m.put("Allow all the time",
+              "Immer zulassen");
+        m.put("Open app permissions",
+              "App-Berechtigungen öffnen");
+        m.put("6. Warning: tag not seen for a long time",
+              "6. Warnung: Tag lange nicht gesehen");
+        m.put("7. App lock (this phone only)",
+              "7. App-Sperre (nur auf diesem Handy)");
         m.put("5. Warning: tag not seen for a long time",
               "5. Warnung: Tag lange nicht gesehen");
         m.put("6. App lock (this phone only)",

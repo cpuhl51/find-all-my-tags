@@ -1,6 +1,20 @@
 {
-  "version": "1.9.0",
+  "version": "1.9.1",
   "verlauf": [
+    {
+      "version": "1.9.1",
+      "datum": "2026-11-15",
+      "aenderungen": [
+        "Fehler behoben: Tag-Details öffnen sich wieder (Liste und Karte)",
+        "📶 „In der Nähe“: Suche läuft dauerhaft auch im Hintergrund, bei offener App jede Minute",
+        "Neue Einstellung 5: Tags in der Nähe (Bluetooth)"
+      ],
+      "aenderungen_en": [
+        "Fixed: tag details open again (list and map)",
+        "📶 “Nearby”: search now runs in the background too, every minute while the app is open",
+        "New setting 5: Tags nearby (Bluetooth)"
+      ]
+    },
     {
       "version": "1.9.0",
       "datum": "2026-11-15",

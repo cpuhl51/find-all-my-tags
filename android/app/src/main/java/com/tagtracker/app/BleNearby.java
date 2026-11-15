@@ -30,7 +30,7 @@ import java.util.Set;
  */
 final class BleNearby {
     static final ParcelUuid FHN = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
-    private static final long MIN_GAP_MS = 5 * 60 * 1000L;
+    private static final long MIN_GAP_MS = 50 * 1000L;   // bei offener App jede Minute
     private static volatile long lastScan = 0;
     /** Wie viele eigene Tags beim letzten Scan erkannt wurden. */
     static volatile int lastMatched = 0;
@@ -104,15 +104,90 @@ final class BleNearby {
         }
         lastMatched = 0;
         if (frames.isEmpty()) return 0;
+        ingest(ctx, frames, force);
+        return frames.size();
+    }
+
+    /** Gesehene Funkrahmen an Python geben, das sie den eigenen Tags zuordnet. */
+    static void ingest(Context ctx, Set<String> frames, boolean wide) {
         try {
             JSONArray arr = new JSONArray();
             for (String f : frames) arr.put(f);
-            JSONObject res = new JSONObject(TagApp.py(ctx).callAttr("ble_ingest", arr.toString(), force).toString());
+            JSONObject res = new JSONObject(TagApp.py(ctx).callAttr("ble_ingest", arr.toString(), wide).toString());
             lastMatched = res.optInt("matched", 0);
             lastKnown = res.optInt("known", 0);
         } catch (Exception ignored) {
         }
-        return frames.size();
+    }
+
+    /** Find-Hub-Rahmen aus einem Scan-Ergebnis als Hex, oder null. */
+    static String frameOf(ScanResult r) {
+        ScanRecord rec = r.getScanRecord();
+        if (rec == null) return null;
+        byte[] sd = rec.getServiceData(FHN);
+        if (sd != null && sd.length >= 21 && (sd[0] == 0x40 || sd[0] == 0x41)) return hex(sd);
+        return null;
+    }
+
+    // ---------- Dauerhafte Suche im Hintergrund ----------
+
+    /** Im Hintergrund liefert Android Ergebnisse nur mit "Standort immer erlauben". */
+    static boolean canScanInBackground(Context ctx) {
+        if (!hasPermissions(ctx)) return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ctx.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+
+    private static android.app.PendingIntent bgIntent(Context ctx) {
+        int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags |= android.app.PendingIntent.FLAG_MUTABLE;
+        return android.app.PendingIntent.getBroadcast(ctx, 77,
+                new android.content.Intent(ctx, NearbyReceiver.class), flags);
+    }
+
+    private static BluetoothLeScanner scanner(Context ctx) {
+        BluetoothManager bm = (BluetoothManager) ctx.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter ad = bm != null ? bm.getAdapter() : null;
+        if (ad == null || !ad.isEnabled()) return null;
+        return ad.getBluetoothLeScanner();
+    }
+
+    /**
+     * Startet eine dauerhafte, stromsparende Suche, die Android selbst ausführt (auch wenn die App zu ist).
+     * Treffer kommen im NearbyReceiver an. Neu starten ist unschädlich.
+     */
+    @SuppressLint("MissingPermission")
+    static void startBackground(Context ctx) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !hasPermissions(ctx)) return;
+        if (TagApp.prefs(ctx).getBoolean(TagApp.KEY_PAUSED, false)) return;
+        BluetoothLeScanner sc = scanner(ctx);
+        if (sc == null) return;
+        List<ScanFilter> filters = new ArrayList<>();
+        filters.add(new ScanFilter.Builder().setServiceData(FHN, new byte[0]).build());
+        ScanSettings settings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                .setReportDelay(20000)   // gesammelt alle ~20 s, spart Akku
+                .build();
+        try {
+            android.app.PendingIntent pi = bgIntent(ctx);
+            sc.stopScan(pi);
+            sc.startScan(filters, settings, pi);
+        } catch (Exception ignored) {
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    static void stopBackground(Context ctx) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        BluetoothLeScanner sc = scanner(ctx);
+        if (sc == null) return;
+        try {
+            sc.stopScan(bgIntent(ctx));
+        } catch (Exception ignored) {
+        }
     }
 
     private static String hex(byte[] b) {

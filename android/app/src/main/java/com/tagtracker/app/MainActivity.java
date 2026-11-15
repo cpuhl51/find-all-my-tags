@@ -369,7 +369,7 @@ public class MainActivity extends Activity {
         public void run() {
             nearbyHandler.removeCallbacks(this);
             if (BleNearby.hasPermissions(MainActivity.this)) runNearbyScan(false);
-            nearbyHandler.postDelayed(this, 5 * 60 * 1000L);
+            nearbyHandler.postDelayed(this, 60 * 1000L);   // bei offener App jede Minute
         }
     };
 
@@ -394,7 +394,7 @@ public class MainActivity extends Activity {
                 known = TagApp.py(this).callAttr("ble_known").toInt();
             } catch (Exception ignored) {
             }
-            int seen = BleNearby.scanAndUpdate(this, userAsked ? 10000 : 6000, userAsked);
+            int seen = BleNearby.scanAndUpdate(this, userAsked ? 10000 : 5000, userAsked);
             final int k = known;
             runOnUiThread(() -> {
                 if (seen > 0 && web != null) web.evaluateJavascript("window.reloadDevices && window.reloadDevices()", null);
@@ -417,7 +417,10 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
-        if (code == REQ_BLE && BleNearby.hasPermissions(this)) runNearbyScan(true);
+        if (code == REQ_BLE && BleNearby.hasPermissions(this)) {
+            runNearbyScan(true);
+            BleNearby.startBackground(this);
+        }
         if (code == REQ_GEO && pendingGeo != null) {
             boolean ok = checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == android.content.pm.PackageManager.PERMISSION_GRANTED;
