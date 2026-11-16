@@ -1,0 +1,17 @@
+name: Release (live)
+
+# Live stellen: den geprüften Stand von main auf den Branch "release" schieben.
+# Dann wird die APK gebaut und als GitHub-Release v<Version> veröffentlicht.
+on:
+  push:
+    branches: [release]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/android.yml
+    with:
+      publish: true
+    secrets: inherit
